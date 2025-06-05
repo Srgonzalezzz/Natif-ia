@@ -1,0 +1,1412 @@
+[
+  {
+    "clave": "kinops",
+    "contenido": [
+      {
+        "tipo": "h3",
+        "texto": "¡COMER SANO NUNCA FUE TAN RICO!"
+      },
+      {
+        "tipo": "h3",
+        "texto": "Display Kinops Surtido x12und"
+      },
+      {
+        "tipo": "h3",
+        "texto": "Kinops chocolate leche 40% x12und"
+      },
+      {
+        "tipo": "h3",
+        "texto": "Kinops chocolate blanco x12und"
+      },
+      {
+        "tipo": "h3",
+        "texto": "Kinops chocolate oscuro 60% x12und"
+      }
+    ]
+  },
+   {
+    "clave": "gummis, gomas, gomitas",
+    "contenido": [
+      {
+        "tipo": "h3",
+        "texto": "Por ahora nuestro producto no esta disponible al publico, pronto volveremos con nuestras gomas deliciosas"
+      }
+    ]
+  },
+  {
+    "clave": "puntos_de_venta",
+    "contenido": [
+      {
+        "tipo": "h1",
+        "texto": "PUNTOS DE VENTA"
+      },
+      {
+        "tipo": "p",
+        "texto": "FARMACIAS"
+      },
+      {
+        "tipo": "p",
+        "texto": "FARMATODO"
+      },
+      {
+        "tipo": "li",
+        "texto": "Medellín"
+      },
+      {
+        "tipo": "li",
+        "texto": "Rionegro"
+      },
+      {
+        "tipo": "li",
+        "texto": "Bello"
+      },
+      {
+        "tipo": "li",
+        "texto": "Itagúí"
+      },
+      {
+        "tipo": "li",
+        "texto": "Sabaneta"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS PASTEUR CUERPO SANO"
+      },
+      {
+        "tipo": "li",
+        "texto": "Medellín"
+      },
+      {
+        "tipo": "li",
+        "texto": "Sabaneta"
+      },
+      {
+        "tipo": "li",
+        "texto": "Bello"
+      },
+      {
+        "tipo": "li",
+        "texto": "Envigado"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS SALUDABLES"
+      },
+      {
+        "tipo": "li",
+        "texto": "Frutos Riogrande: Rionegro - Km 8 Don Diego C.C Jardines De Llanogrande Local 212"
+      },
+      {
+        "tipo": "li",
+        "texto": "Garu Fit Market: Envigado - C.C City Plaza envigado, Local 101"
+      },
+      {
+        "tipo": "li",
+        "texto": "Mercafit Medellin: Mall terracina Local 126 Primer Piso"
+      },
+      {
+        "tipo": "li",
+        "texto": "Mercasano: Medellin - Carrera 25 3 45 Mall del este Local 173"
+      },
+      {
+        "tipo": "li",
+        "texto": "Vitaintegral Laureles -Av Nutibara Transversal 39B 77 40"
+      },
+      {
+        "tipo": "li",
+        "texto": "Vitaintegral Poblado - Carrera 42 5 Sur 43"
+      },
+      {
+        "tipo": "li",
+        "texto": "Nutrilight Aguacatala: Medellin"
+      },
+      {
+        "tipo": "li",
+        "texto": "Nutrilight Ayacucho: Medellin - Calle 49 42 A 23"
+      },
+      {
+        "tipo": "li",
+        "texto": "Nutrilight Astoria: Medellin - Carrera 49 52 61 Local 105"
+      },
+      {
+        "tipo": "li",
+        "texto": "Nutrilight Lemont: Via Las Palmas KM 15 mas 990 C.C. Lemont Local 151"
+      },
+      {
+        "tipo": "li",
+        "texto": "Nutrilight Llanogrande: Rionegro - Mall Plaza Linares Local 14 Sector La Malita"
+      },
+      {
+        "tipo": "li",
+        "texto": "Nutrilight Molinos: Medellin - Calle 30 82 A 26 C.C. Molinos Local 3179"
+      },
+      {
+        "tipo": "li",
+        "texto": "Nutrilight Tesoro: Medellin - Carrera 25 A 1A Sur-45 9 C.C. Tesoro Local 317"
+      },
+      {
+        "tipo": "li",
+        "texto": "Nutrilight Unicentro: Medellin - Carrera 66 A 34 B 08"
+      },
+      {
+        "tipo": "li",
+        "texto": "Nutrilight La Central: Medellin"
+      },
+      {
+        "tipo": "li",
+        "texto": "Plazet Santa Fe: Medellín"
+      },
+      {
+        "tipo": "li",
+        "texto": "Plazat Viva Envigado: Envigado"
+      },
+      {
+        "tipo": "li",
+        "texto": "Zonazul Arkadia: Medellín - Carrera 80 1 - 09 C.C Arkadia Local 9834"
+      },
+      {
+        "tipo": "li",
+        "texto": "Zonazul Envigado - Carrera 48 34 Sur 29 C.C. Viva Envigado Dentro del Exito Local 179"
+      },
+      {
+        "tipo": "li",
+        "texto": "Zonazul Euro Frontera - Carrera 43 A 21 Sur 06 Euro De La Frontera Local 9-10"
+      },
+      {
+        "tipo": "li",
+        "texto": "Zonazul Fabricato: Bello - Calle 40 50-205 C.C. Plaza Fabricato Local 3011"
+      },
+      {
+        "tipo": "li",
+        "texto": "Zonazul Laureles: Carrera 81 37-100 C.C. Viva Laureles Local 120"
+      },
+      {
+        "tipo": "li",
+        "texto": "Zonazul Oviedo: Medellín - Carrera 43A 6S-15 C.C. Oviedo Local 2405"
+      },
+      {
+        "tipo": "li",
+        "texto": "Zonazul Palmas: Envigado - Km 16 Vía Las Palmas C.C. Viva Palmas Local 128"
+      },
+      {
+        "tipo": "li",
+        "texto": "Zonazul Rionegro: Calle 43 54-139 C.C San Nicolás Local 114 dentro del Exito"
+      },
+      {
+        "tipo": "li",
+        "texto": "Zonazul Santa Fe: Medellín - Carrera 43A Calle 7 SUR -170 C.C. Santa Fe Local 3027"
+      },
+      {
+        "tipo": "li",
+        "texto": "Zonazul Tesoro: Carrera 25A 1A Sur 45 C.C. El Tesoro Dentro de Carulla Local 113"
+      },
+      {
+        "tipo": "li",
+        "texto": "Nutrifit Co: Envigado - Carrera 27 23 Sur 247 Loma Esmeralda"
+      },
+      {
+        "tipo": "li",
+        "texto": "Vitalsano Fit Market: Caucasia - Calle 24 8 14 Barrio el Kennedy"
+      },
+      {
+        "tipo": "li",
+        "texto": "Natumarket: Yarumal - Carrera 18 21 34"
+      },
+      {
+        "tipo": "p",
+        "texto": "FARMACIAS"
+      },
+      {
+        "tipo": "p",
+        "texto": "FARMATODO"
+      },
+      {
+        "tipo": "li",
+        "texto": "Barranquilla"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS SALUDABLES"
+      },
+      {
+        "tipo": "li",
+        "texto": "Senda Natural Barranquilla: Calle 99 52-53 C.C. Buena Vista Local 405"
+      },
+      {
+        "tipo": "li",
+        "texto": "Zonazul Barranquilla: Carrera 51B 87 50 C.C Viva Local 119 Dentro del Exito"
+      },
+      {
+        "tipo": "p",
+        "texto": "FARMACIAS"
+      },
+      {
+        "tipo": "p",
+        "texto": "FARMATODO"
+      },
+      {
+        "tipo": "li",
+        "texto": "Cartagena"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS SALUDABLES"
+      },
+      {
+        "tipo": "li",
+        "texto": "Alma Vegana: Cartagena - Av Pedro de Heredia Portal comercial los 4 vientos, Local 6A"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS SALUDABLES"
+      },
+      {
+        "tipo": "li",
+        "texto": "Almendra Duitama: Calle 17 15 52 Piso 2"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS SALUDABLES"
+      },
+      {
+        "tipo": "li",
+        "texto": "Mercafit Corp SAS (Palermo): Manizalez - Calle 66 26 45 Ed guayacán 66"
+      },
+      {
+        "tipo": "li",
+        "texto": "Mercafit Corp SAS (Revasco): Ravasco Carrera 25 54 -29 Av. paralela"
+      },
+      {
+        "tipo": "li",
+        "texto": "Mercafit Corp SAS (Milan): Carrera 23 72 05 vía Batallón"
+      },
+      {
+        "tipo": "li",
+        "texto": "Mercafit Corp SAS (La Florida): Mall la Florida, local 9 y 10"
+      },
+      {
+        "tipo": "li",
+        "texto": "Viensano Manizalez: Calle 66A 26A 51, Palermo"
+      },
+      {
+        "tipo": "li",
+        "texto": "Tiendas Guayacan La Florida: Calle 71 4 71 Villamaria"
+      },
+      {
+        "tipo": "li",
+        "texto": "Saychesse: Manizalez - Carrera 21 65 C 37 Primer Piso Local 03 Edificio Venneto Sector Cable"
+      },
+      {
+        "tipo": "p",
+        "texto": "FARMACIAS"
+      },
+      {
+        "tipo": "p",
+        "texto": "FARMATODO"
+      },
+      {
+        "tipo": "li",
+        "texto": "Valledupar"
+      },
+      {
+        "tipo": "p",
+        "texto": "FARMACIAS"
+      },
+      {
+        "tipo": "p",
+        "texto": "FARMATODO"
+      },
+      {
+        "tipo": "li",
+        "texto": "Montería"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS PASTEUR CUERPO SANO"
+      },
+      {
+        "tipo": "li",
+        "texto": "Montería"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS SALUDABLES"
+      },
+      {
+        "tipo": "li",
+        "texto": "Zonazul Montería: Calle 48 Carrera 9 Dentro del Éxito Alamedas"
+      },
+      {
+        "tipo": "p",
+        "texto": "FARMACIAS"
+      },
+      {
+        "tipo": "p",
+        "texto": "FARMATODO"
+      },
+      {
+        "tipo": "li",
+        "texto": "Bogotá"
+      },
+      {
+        "tipo": "li",
+        "texto": "Cajicá"
+      },
+      {
+        "tipo": "li",
+        "texto": "Chia"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS PASTEUR CUERPO SANO"
+      },
+      {
+        "tipo": "li",
+        "texto": "Bogotá"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS SALUDABLES"
+      },
+      {
+        "tipo": "li",
+        "texto": "Bonsante: Bogotá - Carrera 7B 146 90"
+      },
+      {
+        "tipo": "li",
+        "texto": "Canasto Market: Bogotá - Calle 122 15A 40"
+      },
+      {
+        "tipo": "li",
+        "texto": "Fitlomena: Chia - Av Padilla 900 Este CC Centro Chía Local 1160"
+      },
+      {
+        "tipo": "li",
+        "texto": "Green Fit: Bogotá - Calle 18 77 51 Local 131 Meridiano 13 Barrio La Felicidad"
+      },
+      {
+        "tipo": "li",
+        "texto": "La Playa: Zipaquira - Carrera 8 2-42"
+      },
+      {
+        "tipo": "li",
+        "texto": "Fit Market Cedritos: Calle 140 13 - 50"
+      },
+      {
+        "tipo": "li",
+        "texto": "Fit Market Rosales: Calle 71 4-55"
+      },
+      {
+        "tipo": "li",
+        "texto": "Fit Market Colina: Carrera 58 137 B -01 Local 8 Centro Comercial Porto Alegre"
+      },
+      {
+        "tipo": "li",
+        "texto": "Fit Market Chico: Calle 90 16-56"
+      },
+      {
+        "tipo": "li",
+        "texto": "Gastronomy Market 93: Bogotá - Carrera 13 93 B 51"
+      },
+      {
+        "tipo": "li",
+        "texto": "Gastronomy Market Calle 109: Bogotá - Calle 109 18 36"
+      },
+      {
+        "tipo": "li",
+        "texto": "Gastronomy Market Rosales: Bogotá - Calle 72 5 22"
+      },
+      {
+        "tipo": "li",
+        "texto": "Gastronomy Market Usaquen: Bogotá - Carrera 7 124 97"
+      },
+      {
+        "tipo": "li",
+        "texto": "Plazet Americas Bogotá"
+      },
+      {
+        "tipo": "li",
+        "texto": "Plazet Exito Bogotá"
+      },
+      {
+        "tipo": "li",
+        "texto": "Plazet Unioccidente Bogotá"
+      },
+      {
+        "tipo": "li",
+        "texto": "Tiendas en Forma Santa fe: Bogotá - Calle 185 45 03 Local 256"
+      },
+      {
+        "tipo": "li",
+        "texto": "Tiendas en Forma Show Place: Bogotá - Calle 147 7 52"
+      },
+      {
+        "tipo": "li",
+        "texto": "Tiendas en Forma Chapinero: Bogotá - Calle 64 7 30"
+      },
+      {
+        "tipo": "li",
+        "texto": "Tiendas en Forma Calle 122: Bogotá - Calle 122 16 12"
+      },
+      {
+        "tipo": "li",
+        "texto": "Tiendas en Forma Centro CLL 17: Bogotá - Calle 17 8 02"
+      },
+      {
+        "tipo": "li",
+        "texto": "Tiendas en Forma PLAZA 102: Bogotá - Avenida 19 102 31"
+      },
+      {
+        "tipo": "li",
+        "texto": "Tiendas en Forma Bogotá - Carrera 86 55 A 75 Local 2-140"
+      },
+      {
+        "tipo": "li",
+        "texto": "Tiendas en Forma COLINA 138: Bogotá - Calle 138 55 53"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS SALUDABLES"
+      },
+      {
+        "tipo": "li",
+        "texto": "Fitme: Maicao - Calle 10 11 19 Barrio Centro Local 1"
+      },
+      {
+        "tipo": "p",
+        "texto": "FARMACIAS"
+      },
+      {
+        "tipo": "p",
+        "texto": "FARMATODO"
+      },
+      {
+        "tipo": "li",
+        "texto": "Santa Marta"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS SALUDABLES"
+      },
+      {
+        "tipo": "li",
+        "texto": "El Sembrador: Santa Marta - Carrera 11 12 90"
+      },
+      {
+        "tipo": "li",
+        "texto": "Hecho en Casa: Santa Marta - Carrera 4 26 - 40 C.C. Prado Plaza Local 117"
+      },
+      {
+        "tipo": "li",
+        "texto": "Mercaverde: Santa Marta - Carrera 1 C 23 56 Barrio Bellavsta Local 1"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS SALUDABLES"
+      },
+      {
+        "tipo": "li",
+        "texto": "La Colmena: Villavicencio - Carrera 36 5A 21 Sur Lt 8A C.C Rosablanca Local 219"
+      },
+      {
+        "tipo": "li",
+        "texto": "Sana Tentación: Villavicencio - Calle 15 44 D 28 Local 1 Edificio Palos De Caña"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS SALUDABLES"
+      },
+      {
+        "tipo": "li",
+        "texto": "Almendra Pasto: Nariño - Calle 13 A 12 A 04 Barrio Violetas 2"
+      },
+      {
+        "tipo": "li",
+        "texto": "Biomarket: Pasto - Calle 18 31 88 Local 13 Barrio Pasaje Comercial Novacentro"
+      },
+      {
+        "tipo": "p",
+        "texto": "FARMACIAS"
+      },
+      {
+        "tipo": "p",
+        "texto": "FARMATODO"
+      },
+      {
+        "tipo": "li",
+        "texto": "Bucaramanga"
+      },
+      {
+        "tipo": "li",
+        "texto": "Cúcuta"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS SALUDABLES SANTANDER"
+      },
+      {
+        "tipo": "li",
+        "texto": "Almendra Fit: Barbosa - Carrera 9 16 47 Barrio Santa Fe"
+      },
+      {
+        "tipo": "li",
+        "texto": "Fitbuk: Bucaramanga - Calle 45 28 64 Barrio Sotomayor"
+      },
+      {
+        "tipo": "li",
+        "texto": "Fit store Express: Floridablanca - Calle 31 22 97 Cañaveral"
+      },
+      {
+        "tipo": "li",
+        "texto": "Maca Market: San Gil - Carrera 13 12 134 Barrio Sagrada Familia"
+      },
+      {
+        "tipo": "li",
+        "texto": "Senda Natural Bucaramanga: Transversal 93 34 ­ 99 El Tejar C.C. El Cacique Local 424 y 425"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS SALUDABLES NORTE DE SANTANDER"
+      },
+      {
+        "tipo": "li",
+        "texto": "Jengibre Mercado: Cúcuta - Avenida 2 E Con 14 A 32 Los Caobos"
+      },
+      {
+        "tipo": "li",
+        "texto": "Vitalfit Cúcuta: Avenida 11 E 1 35 AV Guaimaral Barrio Quinta oriental"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS SALUDABLES"
+      },
+      {
+        "tipo": "li",
+        "texto": "Feel Fit Market: Armenia - Calle 5 Norte 18 A 88 C.C. Bambusa Local 32"
+      },
+      {
+        "tipo": "li",
+        "texto": "Fitness Eco Armenia: Carrera 13 9 A Norte 58 Edificio La Castellana Local 5"
+      },
+      {
+        "tipo": "li",
+        "texto": "Fitness Eco Armenia: Carrera 15 22 Norte 77 Edificio Oasis de Laureles Local 13 16"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS SALUDABLES"
+      },
+      {
+        "tipo": "li",
+        "texto": "Bio Mercado Saludable: Santa Rosa de Cabal - Carrera 14 11 39"
+      },
+      {
+        "tipo": "li",
+        "texto": "Terrasano: Pereira - Calle 12 18 24 Local 19 Piso 0 Megacentro Pinares"
+      },
+      {
+        "tipo": "li",
+        "texto": "Vita Eco Market: Pereira -"
+      },
+      {
+        "tipo": "li",
+        "texto": "Carrera 14 12 55"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS SALUDABLES"
+      },
+      {
+        "tipo": "li",
+        "texto": "ADZ Fitmarket: San Andres - Edificio Bay Point Local 6"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS SALUDABLES"
+      },
+      {
+        "tipo": "li",
+        "texto": "A´Snack Fit San Jose: San Jose - Carrera 23 9 61 Barrio Centro"
+      },
+      {
+        "tipo": "li",
+        "texto": "Merkafit Guaviare: Gimnasio W Fitness Frente Al Parque De La Reconciliación Barrio Bello Horizonte"
+      },
+      {
+        "tipo": "p",
+        "texto": "FARMACIAS"
+      },
+      {
+        "tipo": "p",
+        "texto": "FARMATODO"
+      },
+      {
+        "tipo": "li",
+        "texto": "Sincelejo"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS PASTEUR CUERPO SANO"
+      },
+      {
+        "tipo": "li",
+        "texto": "Sincelejo"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS SALUDABLES"
+      },
+      {
+        "tipo": "li",
+        "texto": "Nutrefit Sincelejo: Calle 25 28 B 194 Barrio El Socorro"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS SALUDABLES"
+      },
+      {
+        "tipo": "li",
+        "texto": "Bonsai: Ibagué - Carrera 5 10 70"
+      },
+      {
+        "tipo": "li",
+        "texto": "Cardio Fit: Ibagué - Carrera 14 Calle 44 63 Local 2"
+      },
+      {
+        "tipo": "li",
+        "texto": "Equilibrio Sana Nutrición: Ibagué- Carrera 16 Sur 96 48 Mercacentro 10 Del Poblado Local 21"
+      },
+      {
+        "tipo": "li",
+        "texto": "Macondo: Ibagué - Carrera 5 10 70"
+      },
+      {
+        "tipo": "li",
+        "texto": "Nicolás Pachón Barrera: Ibagué - Diagonal 47 49 33 ,Manzana 16, casa 2 onzaga"
+      },
+      {
+        "tipo": "li",
+        "texto": "Selva Samaria: Ibagué - Carrera 12 Sur 93 134 Local 5 Clínica Medicadiz La Samaria"
+      },
+      {
+        "tipo": "li",
+        "texto": "Soy Natural Daniela: Ibagué - Carrera 14 75 A 29 Local 5 Estancia Del Vergel"
+      },
+      {
+        "tipo": "li",
+        "texto": "Soy Natural JCCG: Ibagué - Calle 10 3- 01 Local 2 Centro"
+      },
+      {
+        "tipo": "li",
+        "texto": "SOY NATURAL LA 60: Ibagué - Carrera 8 60 55"
+      },
+      {
+        "tipo": "p",
+        "texto": "FARMACIAS"
+      },
+      {
+        "tipo": "p",
+        "texto": "FARMATODO"
+      },
+      {
+        "tipo": "li",
+        "texto": "Cali"
+      },
+      {
+        "tipo": "li",
+        "texto": "Jamundí"
+      },
+      {
+        "tipo": "p",
+        "texto": "TIENDAS SALUDABLES"
+      },
+      {
+        "tipo": "li",
+        "texto": "Vitafit Popayán: Carrera 9 18 N 239 Local 4 Terrazas Del Norte"
+      },
+      {
+        "tipo": "li",
+        "texto": "Ecofit Market: Cacedonia - Carrera 16 5 56 Centinela Mall Local 101"
+      },
+      {
+        "tipo": "li",
+        "texto": "Ñomy Fit: Palmira - Carrera 28 35 13 Barrio Santa Rita"
+      },
+      {
+        "tipo": "li",
+        "texto": "Pezcar Market: Palmira: Carrera 28 47 90"
+      },
+      {
+        "tipo": "li",
+        "texto": "Sanissimo Bio Ciudad Jardín: Cali - Calle 13 A 100 119 Ciudad Jardín"
+      },
+      {
+        "tipo": "li",
+        "texto": "Sanissimo Bio Pance: Cali - Carrera 122 16 A 18 Pance"
+      },
+      {
+        "tipo": "li",
+        "texto": "Nutrilight Aventura Cali: Carrera 100 15 A - 90 Local 104"
+      },
+      {
+        "tipo": "li",
+        "texto": "Nutrilight Rosvelt Cali"
+      },
+      {
+        "tipo": "li",
+        "texto": "Plazet Unicentro Cali"
+      },
+      {
+        "tipo": "li",
+        "texto": "Vitafitness: Cali - Avenida 3 E 47 n28 Barrio Vipasa"
+      }
+    ]
+  },
+  {
+    "clave": "quienes son",
+    "contenido": [
+      {
+        "tipo": "h1",
+        "texto": "NOSOTROS"
+      },
+      {
+        "tipo": "p",
+        "texto": "¡Bienvenidos a Natif, donde desafiamos el mito de que comer saludable es feo y aburrido!"
+      },
+      {
+        "tipo": "p",
+        "texto": "Sabemos que a veces es difícil encontrar opciones que sean deliciosas y nutritivas, pero con Natif, eso cambia por completo.Queremos formar parte de tu vida y demostrarte que comer sano nunca fue tan rico. En Natif, ofrecemos un portafolio de productos saludables que transformarán tu día a día.Desde opciones en panadería hasta cereales y snacks. Con nuestros productos, podrás crear deliciosas recetas y compartir momentos inolvidables con tus seres queridos.Descubre un mundo de sabores que te harán replantearte todo lo que pensabas sobre la comida saludable.En Natif, creemos que alimentarse bien es fundamental para una vida plena y queremos ser tu compañero en este viaje hacia un estilo de vida más saludable y delicioso.¡Porque en Natif, comer saludable nunca fue tan delicioso!\""
+      },
+      {
+        "tipo": "p",
+        "texto": "PROPÓSITO"
+      },
+      {
+        "tipo": "p",
+        "texto": "Bienvenidos a nuestro sueño hecho realidad! Somos Issa y Juanja, una pareja de jóvenes emprendedores con muchos sueños por delante y uno de esos se llama Natif! Esto empezó cuando Issa se fue de intercambio y se subió casi 15 kilos en menos de seis meses, a raíz de esto, cuando regresó a Colombia tomó la decisión de cambiar su estilo de vida. Poco a poco empezó a cogerle amor al deporte y a la buena alimentación, y aunque no fue fácil, logró tener un balance sin llegar a extremos y sin verlo como un sacrificio. Gracias a esto, decidió abrir su página @issavasquez_ en Instagram, para mostrarle a los demás que si ella pudo cambiar su estilo de vida, ¡los demás también! Al mismo tiempo, Juanja estaba estudiando su carrera de Negocios Internacionales, pero gracias a su familia, siempre estuvo interesado en el agro colombiano. Especialmente le apasionaba conocer la manera en cómo se producían los alimentos en su país y poco a poco empezó a entender la gran responsabilidad que hay detrás de esto. Por esta razón, creó su empresa de fertilizantes orgánicos, para poder aportar a las personas una mejor alimentación. Gracias a esta pasión que nos unía y con el objetivo de aportar a las personas tener un mejor estilo de vida, ¡nació Natif! Una empresa con tres objetivos principales: ser una marca honesta, productos saludables a la par que deliciosos y romper el pensamiento de que comer saludable es aburrido. Llevamos tres años trabajando en fórmulas, empaques, medidas, ingredientes, etc… y hoy, después de mucho tiempo, ¡es una realidad! ASÍ QUE QUEREMOS AGRADECERTE POR HACER PARTE DE NATIF ¡BIENVENIDO A ESTE GRAN EQUIPO !"
+      },
+      {
+        "tipo": "h3",
+        "texto": "NUESTRO EQUIPO"
+      }
+    ]
+  },
+  {
+    "clave": "contacto",
+    "contenido": [
+      {
+        "tipo": "h3",
+        "texto": "DÉJANOS TU MENSAJE"
+      },
+      {
+        "tipo": "p",
+        "texto": "Tu nombre (obligatorio)"
+      },
+      {
+        "tipo": "p",
+        "texto": "Tu correo electrónico (obligatorio)"
+      },
+      {
+        "tipo": "p",
+        "texto": "Celular"
+      },
+      {
+        "tipo": "p",
+        "texto": "Déjanos tu dudas, comentarios y si quieres ser distribuidor información para conocerte más."
+      },
+      {
+        "tipo": "h3",
+        "texto": "CONTÁCTANOS"
+      },
+      {
+        "tipo": "p",
+        "texto": "Nos encanta tenerte por aquí! Te invitamos a que te pongas en contacto con nosotros para tus dudas, comentarios y sugerencias son muy importantes para nosotros. ¡Te responderemos en el menor tiempo posible!. NOS PUEDES CONTACTAR POR LOS SIGUIENTES MEDIOS:"
+      },
+      {
+        "tipo": "p",
+        "texto": "+573215225912"
+      },
+      {
+        "tipo": "p",
+        "texto": "info@natifbyissavasquez.com"
+      }
+    ]
+  },
+  {
+    "clave": "distribuidor",
+    "contenido": [
+      {
+        "tipo": "h3",
+        "texto": "QUIERO SER DISTRIBUIDOR"
+      },
+      {
+        "tipo": "p",
+        "texto": "Tu nombre (obligatorio)"
+      },
+      {
+        "tipo": "p",
+        "texto": "Tu correo electrónico (obligatorio)"
+      },
+      {
+        "tipo": "p",
+        "texto": "Celular"
+      },
+      {
+        "tipo": "p",
+        "texto": "Déjanos tu dudas, comentarios y si quieres ser distribuidor información para conocerte más."
+      },
+      {
+        "tipo": "h3",
+        "texto": "CONTÁCTANOS"
+      },
+      {
+        "tipo": "p",
+        "texto": "Nos encanta tenerte por aquí! Si quieres ser distribuidor cuéntanos mas sobre ti y te contáctaremos. ¡Te responderemos en el menor tiempo posible!. NOS PUEDES CONTACTAR POR LOS SIGUIENTES MEDIOS:"
+      },
+      {
+        "tipo": "p",
+        "texto": "+573215225912"
+      },
+      {
+        "tipo": "p",
+        "texto": "info@natifbyissavasquez.com"
+      },
+      {
+        "tipo": "h3",
+        "texto": "NUESTROS PRODUCTOS"
+      },
+      {
+        "tipo": "h3",
+        "texto": "Combo Lonchera x24und"
+      },
+      {
+        "tipo": "h3",
+        "texto": "Kinops chocolate oscuro 60% x12und"
+      },
+      {
+        "tipo": "h3",
+        "texto": "Kinops chocolate leche 40% x12und"
+      },
+      {
+        "tipo": "h3",
+        "texto": "Kinops chocolate blanco x12und"
+      }
+    ]
+  },
+  {
+    "clave": "faq",
+    "contenido": [
+      {
+        "tipo": "h1",
+        "texto": "PREGUNTAS FRECUENTES"
+      },
+      {
+        "tipo": "p",
+        "texto": "Nuestro pan integral es una opción saludable y nutritiva. Si bien contiene gluten, es importante destacar que es 100% integral, lo que significa que conserva todos los nutrientes naturales presentes en el grano.Además, no contiene ningún tipo de azúcar añadida, lo que lo convierte en una elección excelente para quienes buscan una alimentación equilibrada."
+      },
+      {
+        "tipo": "p",
+        "texto": "Nuestro pan es apto para veganos, ya que no contiene ingredientes de origen animal."
+      },
+      {
+        "tipo": "p",
+        "texto": "En Natif tenemos como prioridad ofrecer productos que promuevan la salud y el bienestar de nuestros consumidores y que además sean deliciosos!"
+      },
+      {
+        "tipo": "p",
+        "texto": "Los kinops (quinoa recubierta con chocolate sin azúcar) cuentan con los sellos de, “Contiene edulcorante”: ya que todos nuestros productos son libres de azúcar y son endulzados con Stevia y eritritol, dos edulcorantes naturales."
+      },
+      {
+        "tipo": "p",
+        "texto": "“Exceso en grasas saturadas”: Ya que el cacao es naturalmente alto en grasas saturadas, más del 60% de su composición es de grasa saturada, en su mayoría “ácido esteárico”, que al ser ingerido se transforma en “ácido oleico”, el cual tiene diferentes beneficios para lasalud, ayuda a reducir el colesterol malo y a aumentar el colesterol bueno, tiene propiedades antiinflamatorias y ayuda con el control del azúcar en sangre."
+      },
+      {
+        "tipo": "p",
+        "texto": "Es importante destacar que esta regulación se aplica por cada 100 gramos de producto, como estipula la normativa colombiana. Si bien nuestro producto viene en un formato de 30 gramos."
+      },
+      {
+        "tipo": "p",
+        "texto": "En la sección Donde encontrarnos del menú puedes encontrar los puntos de venta a Nivel Nacional, también puedes encontrarnos en Rappi Turbo, Almacenes Éxito, Supermercados Olímpica, Farmatodo y Farmacias Pasteur."
+      },
+      {
+        "tipo": "p",
+        "texto": "El pan de avena y pan de chocolate son productos con un bajo porcentaje de conservantes, cuentan con aproximadamente 8 días de vida útil, sin embargo, debes de tener en cuenta el tiempo que tarda en transportarse."
+      },
+      {
+        "tipo": "p",
+        "texto": "Los Kinops tienen una vida útil de 2 años, esto debido a que sus ingredientes principales son Quinoa y Chocolate, alimentos no perecederos que pueden tener un ciclo prolongado sin deteriorarse y sin la necesidad de refrigerarse, manteniendo su calidad nutricional y el sabor."
+      },
+      {
+        "tipo": "p",
+        "texto": "Están hechos con harina de trigo 100% integral, es importante destacar que En Colombia, la ley establece que la harina integral debe ser fortificada con vitaminas y minerales esenciales."
+      },
+      {
+        "tipo": "p",
+        "texto": "Esta medida se implementa para garantizar que los consumidores reciban los nutrientes necesarios para una alimentación balanceada, incluso al optar por productos integrales."
+      },
+      {
+        "tipo": "p",
+        "texto": "Si, nuestros productos son una excelente opción saludable para los niños. Los kinops pueden ser el mejor snack para la lonchera de tus hijos, ya que son deliciosos, solo tienen 4 ingredientes y son libres de azúcar, veganos y gluten free."
+      },
+      {
+        "tipo": "p",
+        "texto": "Por otro lado, nuestro pan es una excelente opción para el desayuno de los niños, o para cualquier hora del día, ya que es sin azúcar añadida, buena fuente de fibra, bajo en grasa, vegano y además, es delicioso!"
+      },
+      {
+        "tipo": "p",
+        "texto": "Si, nuestros productos no tienen ningún ingrediente de origen animal, son libres de leche y huevo."
+      },
+      {
+        "tipo": "p",
+        "texto": "El costo del envío varía según la ciudad en donde te encuentras, para conocer su valor debes ingresar tus datos finalizando la compra y el sistema te generará automáticamente el costo de este."
+      },
+      {
+        "tipo": "p",
+        "texto": "Sabemos que esperas nuestros productos en otros países, y actualmente nos encontramos trabajando para poder llegar a otros lugares del mundo."
+      },
+      {
+        "tipo": "p",
+        "texto": "Por el momento si deseas realizar un pedido internacional tenemos envíos solamente a EEUU, a través de nuestra línea de WhatsApp (+57) 313-343-3057."
+      },
+      {
+        "tipo": "p",
+        "texto": "Claro que sí, si estás interesad@ en distribuir Natif envíanos un correo con tus datos a info@natifbyissavasquez.com, y una persona de nuestro equipo se pondrá en contacto contigo lo antes posible."
+      }
+    ]
+  },
+  {
+    "clave": "terminos",
+    "contenido": [
+      {
+        "tipo": "h1",
+        "texto": "TÉRMINOS Y CONDICIONES"
+      },
+      {
+        "tipo": "p",
+        "texto": "TÉRMINOS Y CONDICIONES"
+      },
+      {
+        "tipo": "p",
+        "texto": "Natif By Issa Vásquez dispone este sitio para dar un mejor servicio a sus clientes. Por favor lee las siguientes normas que gobiernan tu uso de www.natifbyissavasquez.com, el cual aceptas al acceder a él. Si no estás de acuerdo, por favor no lo uses. Nos reservamos el derecho a actualizar o cambiar los Términos y Condiciones en cualquier momento sin previo aviso, es por esto que te recomendamos leer esta sección cada vez que vayas a usar este sitio."
+      },
+      {
+        "tipo": "li",
+        "texto": "RESTRICCIONES DE USO. Todo el contenido que ves y oyes en el sitio www.natifbyissavasquez.com incluyendo, por ejemplo, las imágenes, diseño del sitio, ilustraciones, gráficos son propiedad intelectual de Natif By Issa Vásquez El contenido del sitio www.natifbyissavasquez.com tiene como propósito el uso personal, no comercial de los usuarios de este sitio. Podrás descargar, imprimir o guardar porciones seleccionadas del contenido que te proveemos con las siguientes condiciones:"
+      },
+      {
+        "tipo": "p",
+        "texto": "– Que el uso sea personal, sin ningún propósito comercial – No copiar ni reproducir el contenido en ningún medio – No alterar o modificar en ninguna manera cualquier marca registrada."
+      },
+      {
+        "tipo": "p",
+        "texto": "Natif By Issa Vásquez es una marca registrada. Ningún derecho, título o interés en cualquier contenido o material te es trasferido por el resultado de las actividades anteriormente mencionadas."
+      },
+      {
+        "tipo": "p",
+        "texto": "Natif By Issa Vásquez tiene completa propiedad intelectual de cualquier contenido que descargues, reproduzcas, imprimas, redistribuyas o guardes de este sitio. Todos los contenidos del sitio web www.natifbyissavasquez.com son de propiedad exclusiva y mundial de Natif By Issa Vásquez incluyendo, sin limitación, reproducciones de los artículos, diseño gráfico, logos, imágenes, textos, ilustraciones, fotografías, marcas y otros signos distintivos, en cualquiera de los lenguajes de programación utilizados o utilizables, así como todo el software de funcionamiento y desarrollo del sitio web. La reproducción, distribución, comunicación al público, puesta a disposición del público, transformación, cesión y cualquier otro acto o modalidad de explotación, en cualquier formato on line u off line que no haya sido expresamente autorizado por el titular de los derechos de explotación, quedan expresamente prohibidos."
+      },
+      {
+        "tipo": "p",
+        "texto": "Natif By Issa Vásquez no concede ninguna licencia o autorización de uso de ninguna clase sobre sus derechos de propiedad intelectual e industrial o sobre cualquier otra propiedad o derecho relacionado con la página web, y los servicios y productos ofrecidos. En el caso de datos o contenidos facilitados por el usuario al sitio web www.natifbyissavasquez.com, el usuario concede a Natif By Issa Vásquez el derecho no exclusivo, exento de derechos de autor y/o propiedad intelectual, de forma perpetua, irrevocable y totalmente transferible a terceros, a utilizar, reproducir, modificar, adaptar, publicar, traducir, crear servicios derivados, distribuir y exhibir dichas reseñas y comentarios en todo el mundo y en cualquier medio de comunicación."
+      },
+      {
+        "tipo": "p",
+        "texto": "Todas las marcas y denominaciones de servicios que aparecen en el sitio web www.natifbyissavasquez.com son marcas registradas y de propiedad de Natif By Issa Vásquez"
+      },
+      {
+        "tipo": "li",
+        "texto": "POLÍTICA DE PRECIOS Natif By Issa Vásquez, nuestro compromiso es ofrecer comodidad, servicio y disponibilidad de productos en línea todos los días y a precios atractivos, con algunas ofertas de mercancías, de tiempo limitado y a precios promocionales. La mercancía ofrecida en línea en www.natifbyissavasquez.com podría presentar variaciones frente a los precios ofrecidos en otros canales de venta."
+      },
+      {
+        "tipo": "li",
+        "texto": "COLORES Natif By Issa Vásquez ha realizado un esfuerzo para mostrar los colores de los productos de la forma más cercana a la realidad posible. No obstante ello, el color de los productos que aparecen en pantalla puede estar sujeto a variaciones dependiendo de la calidad del monitor de tu computador. En este sentido Natif By Issa Vásquez no puede garantizar que los colores que aparezcan en tu monitor se ajusten fielmente a la realidad."
+      },
+      {
+        "tipo": "li",
+        "texto": "ERRORES TIPOGRÁFICOS. En el caso de que un producto en www.natifbyissavasquez.com aparezca con un precio incorrecto debido a un error tipográfico o error de los sistemas, Natif By Issa Vásquez tendrá derecho a denegar o cancelar cualquier orden puesta para dichos productos. Si en tu tarjeta de crédito ya ha sido cobrada la compra y tu pedido se cancela, Natif By Issa Vásquez emitirá un abono a tu cuenta de tarjeta crédito o débito por el monto del precio cancelado, o reversará dicha transacción."
+      },
+      {
+        "tipo": "li",
+        "texto": "TERMINACIÓN DEL SERVICIO. Los términos y condiciones se aplican si accedes al sitio, estás en el proceso de registro o tienes un proceso de compra. www.natifbyissavasquez.com puede dar por terminado el servicio en cualquier momento sin previa autorización. Las disposiciones relativas a Derechos de autor, marcas, responsabilidad, limitación de responsabilidad, indemnización y misceláneo, no desaparecen con esta terminación."
+      },
+      {
+        "tipo": "li",
+        "texto": "COMUNICACIÓN. Natif By Issa Vásquez puede entregarte información, por medio de correos electrónicos, avisos generales en el sitio, o por comunicación escrita enviada por correo físico a tu dirección de registro."
+      },
+      {
+        "tipo": "li",
+        "texto": "ACEPTACIÓN DE TÉRMINOS Y CONDICIONES. Al acceder y utilizar el sitio web www.natifbyissavasquez.com, aceptas que estás sujeto a los Términos y Condiciones, y todas las leyes aplicables regirán y se interpretarán de conformidad con las leyes Colombianas."
+      },
+      {
+        "tipo": "li",
+        "texto": "USO DEL SITIO. El acoso de cualquier manera o forma del sitio, incluso a través de correo electrónico y chat o por lenguaje obsceno o abusivo está estrictamente prohibido. La suplantación de identidad está prohibida, inclusive para los directivos o empleados con licencia, el anfitrión, o representante de Natif By Issa Vásquez, así como para otros miembros o visitantes. No se puede cargar, distribuir o publicar a través de este sitio cualquier contenido que sea difamatorio, calumnioso, obsceno, amenazante, invasor de la privacidad o de los derechos de publicidad, abusivo, ilegal, o de cualquier otra manera que puedan constituir o fomentar un delito penal, violar los derechos de cualquiera de las partes o que de lo contrario puede dar lugar a responsabilidad civil o violar cualquier ley. El contenido comercial para solicitar a otros a unirse o ser miembros de cualquier otro servicio comercial en línea u organización está prohibido."
+      },
+      {
+        "tipo": "li",
+        "texto": "VÍNCULOS A TERCEROS En un intento de dar más valor a nuestros visitantes, Natif By Issa Vásquez puede elegir varios sitios web de terceros para acceder desde ellos. Sin embargo, incluso si el tercero fue contratado por Natif By Issa Vásquez no tenemos ningún control sobre estos sitios, los cuales pueden tener prácticas de privacidad y de recopilación de datos diferentes e independientes a las nuestras. Natif By Issa Vásquez no tiene ninguna responsabilidad u obligación por estas políticas o acciones de terceros, y no es responsable por las prácticas de privacidad o el contenido de dichos sitios web."
+      },
+      {
+        "tipo": "li",
+        "texto": "RESPONSABILIDAD Este sitio, los materiales y productos expuestos en él son mostrados de forma real y sin garantías de ningún tipo, ya sea explícita o implícitamente. Natif By Issa Vásquez renuncia a las garantías y representaciones hasta el límite impuesto por la ley colombiana, incluyendo, pero no limitado a las garantías de comercialización y aptitud para un propósito particular legal. Natif By Issa Vásquez no garantiza que las funciones contenidas en el sitio no puedan ser sujetas de interrupciones o errores, ni que todos los defectos serán corregidos, ni que el sitio o el servidor esté libre de virus o de otros componentes peligrosos. Natif By Issa Vásquez no hace ninguna garantía o representación sobre el uso de los materiales en este sitio en cuanto a su exactitud, adecuación, utilidad, puntualidad, confiabilidad o de otra manera. Estas limitaciones pueden no ser aplicables al usuario."
+      },
+      {
+        "tipo": "li",
+        "texto": "POLÍTICAS DE ENVÍO En www.natifbyissavasquez.com, nuestro compromiso es cumplir con los tiempos de entrega, por lo tanto, si el día que llegue tu pedido no estás presente para recibirlo, la transportadora estará autorizada para dejarlo en la portería de la dirección indicada. Sabemos lo importante que es para ti y que no te gustaría esperar hasta una próxima oportunidad para recibirlo. En Natif By Issa Vásquez queremos garantizar que tu pedido sea entregado en el tiempo acordado. Si necesitamos comunicarnos contigo para notificarte alguna novedad del pedido y en el transcurso de un mes no logramos encontrarte, procederemos con la devolución del dinero. Si el pago fue a través de tarjeta de crédito se solicita a la plataforma de pago o el medio de pago utilizado la reversión del pago. En nuestra tienda online queremos entregar tu pedido en el menor tiempo posible, por eso nuestra promesa de entrega es de 7 días hábiles. Nuestros valores de envíos van desde $7.000 - $50.000 dependiendo de la ciudad y el tamaño del paquete. En ocasiones se presentan novedades que nos impiden cumplir con nuestra promesa, sin embargo, queremos garantizarte que este tiempo no excederá el plazo de 30 días que otorga el Estatuto del Consumidor para la entrega de tu compra."
+      }
+    ]
+  },
+  {
+    "clave": "envios",
+    "contenido": [
+      {
+        "tipo": "h1",
+        "texto": "POLÍTICAS DE ENVÍO"
+      },
+      {
+        "tipo": "p",
+        "texto": "POLÍTICAS DE ENVÍOEn www.natifbyissavasquez.com, nuestro compromiso es cumplir con los tiempos de entrega, por lo tanto, si el día que llegue tu pedido no estás presente para recibirlo, la transportadora estará autorizada para dejarlo en la portería de la dirección indicada. Sabemos lo importante que es para ti y que no te gustaría esperar hasta una próxima oportunidad para recibirlo."
+      },
+      {
+        "tipo": "p",
+        "texto": "TIEMPOS DE ENVIO:"
+      },
+      {
+        "tipo": "p",
+        "texto": "En Natif By Issa Vásquez queremos garantizar que tu pedido sea entregado en el tiempo acordado. Si necesitamos comunicarnos contigo para notificarte alguna novedad del pedido y en el transcurso de un mes no logramos encontrarte, procederemos con la devolución del dinero. Si el pago fue a través de tarjeta de crédito se solicita a la plataforma de pago o el medio de pago utilizado la reversión del pago."
+      },
+      {
+        "tipo": "p",
+        "texto": "En nuestra tienda online queremos entregar tu pedido en el menor tiempo posible, por eso nuestra promesa de entrega es de 7 días hábiles. Nuestros valores de envíos van desde $7.000 - $50.000 dependiendo de la ciudad y el tamaño del paquete. En ocasiones se presentan novedades que nos impiden cumplir con nuestra promesa, sin embargo, queremos garantizarte que este tiempo no excederá el plazo de 30 días que otorga el Estatuto del Consumidor para la entrega de tu compra."
+      }
+    ]
+  },
+  {
+    "clave": "devoluciones",
+    "contenido": [
+      {
+        "tipo": "h1",
+        "texto": "POLÍTICAS DE DEVOLUCIÓN Y RETRACTO"
+      },
+      {
+        "tipo": "p",
+        "texto": "POLÍTICA DE REEMBOLSO"
+      },
+      {
+        "tipo": "p",
+        "texto": "POLÍTICAS DE DEVOLUCIÓN/RETRACTO"
+      },
+      {
+        "tipo": "p",
+        "texto": "De acuerdo con el derecho de retracto consagrado por la ley 1480 art. 47, el término máximo para ejercer el derecho de retracto es de 5 días hábiles contados a partir de la entrega del bien. El producto deberá ser devuelto en las mismas condiciones en que lo recibió. Los costos de transporte y los demás que conlleve a la devolución serán cubiertos por el consumidor. En caso de que se cumplan todas las condiciones mencionadas Natif By Issa Vásquez devolverá la suma total abonada, sin que se procedan a hacer descuentos o retenciones, y el termino no podrá exceder de 30 días calendario. Para solicitar devolución o retracto deberás enviarnos un correo a Natif By Issa Vásquez con tu solicitud sin que esta supere el tiempo estipulado por la ley."
+      }
+    ]
+  },
+  {
+    "clave": "tratamiento_datos",
+    "contenido": [
+      {
+        "tipo": "h1",
+        "texto": "POLÍTICA DE TRATAMIENTO DE DATOS"
+      },
+      {
+        "tipo": "p",
+        "texto": "TRATAMIENTO DE DATOS"
+      },
+      {
+        "tipo": "p",
+        "texto": "POLÍTICA DE TRATAMIENTO DE DATOS"
+      },
+      {
+        "tipo": "p",
+        "texto": "Natif By Issa Vásquez 901406306-0"
+      },
+      {
+        "tipo": "p",
+        "texto": "Dirección Física: Cra 41B # 44 SUR 45 Envigado Antioquia"
+      },
+      {
+        "tipo": "p",
+        "texto": "Info@natifbyissavasquez.com"
+      },
+      {
+        "tipo": "p",
+        "texto": "Teléfono de Contacto: 3133433057"
+      },
+      {
+        "tipo": "p",
+        "texto": "Ley aplicable: Ley colombiana"
+      },
+      {
+        "tipo": "p",
+        "texto": "La Constitución Política de Colombia consagra el derecho que tienen todas las personas a conocer, actualizar y rectificar la información que exista sobre ellas en bases de datos o archivos de entidades públicas o privadas. Igualmente, ordena a quienes tienen Datos Personales de terceros a respetar los derechos y garantías previstos en la Constitución cuando se recolecta, trata y circula esta clase de información."
+      },
+      {
+        "tipo": "p",
+        "texto": "Asimismo, la Constitución Política de Colombia consagra el derecho de cualquier persona a la información, de manera tal que reciba información veraz e imparcial."
+      },
+      {
+        "tipo": "p",
+        "texto": "Natif By Issa Vásquez está comprometida con el cumplimiento de la regulación en materia de protección de Datos Personales y con el respeto de los derechos de los Titulares de la información. Por esta razón, adopta la presente Política de Tratamiento de Datos Personales de obligatoria aplicación en todas las actividades que involucren Tratamiento de Datos Personales y de obligatorio cumplimiento por parte de La Compañía, sus Administradores, Colaboradores y los terceros con quien éste se relacione contractual o comercialmente."
+      },
+      {
+        "tipo": "p",
+        "texto": "El Tratamiento de los Datos Personales se podrá realizar a través de medios físicos, automatizados o digitales de acuerdo con el tipo y forma de recolección de la información."
+      },
+      {
+        "tipo": "p",
+        "texto": "Natif By Issa Vásquez podrá hacer uso de los datos personales para:"
+      },
+      {
+        "tipo": "li",
+        "texto": "Ejecutar la relación contractual existente con sus clientes, proveedores y trabajadores, incluida el pago de obligaciones contractuales y el ejercicio de los derechos derivados de los mismos."
+      },
+      {
+        "tipo": "li",
+        "texto": "Proveer los servicios y/o los productos requeridos por sus usuarios."
+      },
+      {
+        "tipo": "li",
+        "texto": "Informar sobre nuevos productos o servicios y/o sobre cambios en los mismos."
+      },
+      {
+        "tipo": "li",
+        "texto": "Evaluar la calidad del servicio."
+      },
+      {
+        "tipo": "li",
+        "texto": "Realizar estudios internos sobre hábitos de consumo."
+      },
+      {
+        "tipo": "li",
+        "texto": "Enviar al correo físico, electrónico, celular o dispositivo móvil, vía mensajes de texto (SMS y/o MMS) o a través de cualquier otro medio análogo y/o digital de comunicación creado o por crearse, información comercial, publicitaria o promocional sobre los productos y/o servicios, eventos y/o promociones de tipo comercial o no de estas, con el fin de impulsar, invitar, dirigir, ejecutar, informar y de manera general, llevar a cabo campañas, promociones o concursos de carácter comercial o publicitario, adelantados por Natif By Issa Vásquez, y/o por terceras personas."
+      },
+      {
+        "tipo": "li",
+        "texto": "Desarrollar el proceso de selección, evaluación, y vinculación laboral, así como los procesos requeridos para dar cumplimiento a cabalidad la relación laboral, incluido el otorgamiento de beneficios."
+      },
+      {
+        "tipo": "li",
+        "texto": "Soportar procesos de auditoría interna o externa."
+      },
+      {
+        "tipo": "li",
+        "texto": "Registrar la información de empleados y/o pensionados (activos e inactivos) en las bases de datos de Natif By Issa Vásquez"
+      },
+      {
+        "tipo": "li",
+        "texto": "Los indicados en la autorización otorgada por el titular del dato o descritos en el aviso de privacidad respectivo, según sea el caso."
+      },
+      {
+        "tipo": "li",
+        "texto": "Suministrar, compartir, enviar o entregar sus datos personales a empresas filiales, vinculadas o subordinadas de Natif By Issa Vásquez ubicadas en Colombia o cualquier otro país en el evento que dichas compañías requieran la información para los fines aquí indicados."
+      },
+      {
+        "tipo": "li",
+        "texto": "Entregar sus datos personales a compañías aseguradoras cuando sea estrictamente necesario para amparar los riesgos de A Natif By Issa Vásquez."
+      },
+      {
+        "tipo": "li",
+        "texto": "Realizar actividades de mercadeo, ventas y promocionales, telemarketing (mercadeo telefónico), servicio al cliente, actividades de activación de marca, premios y promociones, directamente o a través de terceros derivados de alianzas comerciales o de cualquier vínculo."
+      },
+      {
+        "tipo": "li",
+        "texto": "Implementar estrategias de relacionamiento con clientes, proveedores, accionistas y otros terceros con los cuales la Empresa tenga relaciones contractuales o legales;"
+      },
+      {
+        "tipo": "li",
+        "texto": "Realizar invitaciones a eventos, mejorar productos y servicios u ofertar nuevos productos, y todas aquellas actividades asociadas a la relación comercial o vínculo existente con Natif By Issa Vásquez, o aquel que llegare a tener."
+      },
+      {
+        "tipo": "li",
+        "texto": "Entre otros que sin exceder los límites de la ley."
+      },
+      {
+        "tipo": "p",
+        "texto": "Autorización para el Tratamiento de Datos"
+      },
+      {
+        "tipo": "p",
+        "texto": "La autorización del titular la obtenemos a través de cualquier medio que pueda ser objeto de consulta posterior, tal como la página web, formularios, formatos, actividades, concursos presenciales o en redes sociales, formatos PQR, mensajes de datos o apps."
+      },
+      {
+        "tipo": "p",
+        "texto": "Si un dato personal es proporcionado, dicha información será utilizada sólo para los propósitos aquí señalados, y por tanto, Natif By Issa Vásquez no procederá a vender, licenciar, transmitir, o divulgar la misma, salvo que:"
+      },
+      {
+        "tipo": "li",
+        "texto": "Exista autorización expresa para hacerlo."
+      },
+      {
+        "tipo": "li",
+        "texto": "Sea necesario para permitir a los contratistas o agentes prestar los servicios encomendados."
+      },
+      {
+        "tipo": "li",
+        "texto": "Sea necesario con el fin de proveer nuestros servicios y/o productos"
+      },
+      {
+        "tipo": "li",
+        "texto": "Sea necesario divulgarla a las entidades que prestan servicios de mercadeo en nombre de Natif By Issa Vásquez o a otras entidades con las cuales se tengan acuerdos de mercado conjunto."
+      },
+      {
+        "tipo": "li",
+        "texto": "La información tenga relación con una fusión, consolidación, adquisición, desinversión, u otro proceso de restructuración de la sociedad."
+      },
+      {
+        "tipo": "li",
+        "texto": "Que sea requerido o permitido por la ley."
+      },
+      {
+        "tipo": "p",
+        "texto": "Natif By Issa Vásquez podrá subcontratar a terceros para el procesamiento de determinadas funciones o información."
+      },
+      {
+        "tipo": "p",
+        "texto": "Cuando efectivamente se subcontrate con terceros el procesamiento de información personal o se proporcione información personal a terceros prestadores de servicios, Natif By Issa Vásquez advierte a dichos terceros sobre la necesidad de proteger dicha información personal con medidas de seguridad apropiadas, se prohíbe el uso de la información para fines propios y se solicita que no se divulgue la información personal a otros."
+      },
+      {
+        "tipo": "p",
+        "texto": "Derechos de los titulares de datos personales"
+      },
+      {
+        "tipo": "p",
+        "texto": "Los titulares de datos personales por sí o por intermedio de su representante y/o apoderado o su causahabiente podrán ejercer los siguientes derechos, respecto de los datos personales que sean objeto de tratamiento por parte de Natif By Issa Vásquez:"
+      },
+      {
+        "tipo": "li",
+        "texto": "Derecho de acceso: En virtud del cual podrá acceder a los datos personales que estén bajo el control de Natif By Issa Vásquez, para efectos de consultarlos de manera gratuita al menos una vez cada mes calendario, y cada vez que existan modificaciones sustanciales de las Políticas de Tratamiento de la información que motiven nuevas consultas."
+      },
+      {
+        "tipo": "li",
+        "texto": "Derecho de actualización, rectificación y supresión: En virtud del cual podrá solicitar la actualización, rectificación y/o supresión de los datos personales objeto de tratamiento, de tal manera que se satisfagan los propósitos del tratamiento."
+      },
+      {
+        "tipo": "li",
+        "texto": "Derecho a solicitar prueba de la autorización: salvo en los eventos en los cuales, según las normas legales vigentes, no se requiera de la autorización para realizar el tratamiento;"
+      },
+      {
+        "tipo": "li",
+        "texto": "Derecho a ser informado respecto del uso del dato personal"
+      },
+      {
+        "tipo": "li",
+        "texto": "Derecho a presentar quejas ante la Superintendencia de Industria y Comercio: por infracciones a lo dispuesto en la normatividad vigente sobre tratamiento de datos personales."
+      },
+      {
+        "tipo": "li",
+        "texto": "Derecho a requerir el cumplimiento de las órdenes emitidas por la Superintendencia de Industria y Comercio."
+      },
+      {
+        "tipo": "li",
+        "texto": "Para efectos del ejercicio de los derechos antes descritos tanto el titular como la persona que lo represente deberá demostrar su identidad y, de ser el caso, la calidad en virtud de la cual representa al titular. Los derechos de los menores de edad serán ejercidos por medio de las personas que estén facultadas para representarlos."
+      },
+      {
+        "tipo": "p",
+        "texto": "La política de tratamiento de datos podrá ser consultada en la siguiente dirección web: www.natifbyissavasquez.com En el evento que se recolecten datos personales sensibles, el titular podrá negarse a autorizar su tratamiento."
+      },
+      {
+        "tipo": "p",
+        "texto": "El área de mercado de Natif By Issa Vásquez será la responsable de atender las peticiones, quejas y reclamos que formule el titular del dato en ejercicio, a excepción del descrito en su numeral e). Derecho a presentar quejas ante la Superintendencia de Industria y Comercio."
+      },
+      {
+        "tipo": "p",
+        "texto": "Para tales efectos, el titular del dato personal o quien ejerza su representación podrá enviar su petición, queja o reclamo de lunes a viernes de 8:00 a.m. a 5:00 p.m."
+      },
+      {
+        "tipo": "p",
+        "texto": "Correo electrónico: Info@natifbyissavasquez.com"
+      },
+      {
+        "tipo": "p",
+        "texto": "Dirección: Cra 41b # 44 sur 45 Envigado Antioquia"
+      },
+      {
+        "tipo": "p",
+        "texto": "teléfono: 3133933057"
+      }
+    ]
+  },
+  {
+    "clave": "privacidad",
+    "contenido": [
+      {
+        "tipo": "h1",
+        "texto": "POLÍTICAS DE PRIVACIDAD"
+      },
+      {
+        "tipo": "p",
+        "texto": "POLÍTICAS DE PRIVACIDAD"
+      },
+      {
+        "tipo": "p",
+        "texto": "¿QUÉ INFORMACIÓN PEDIMOS Y CÓMO LA USAMOS?"
+      },
+      {
+        "tipo": "p",
+        "texto": "En Natif By Issa Vásquez pedimos información de nuestros clientes en un esfuerzo para mejorar la experiencia y la comunicación de productos, servicios y promociones. Recogemos datos como tu nombre, correo electrónico y dirección, que nos proporcionas cuando te registras en nuestro sitio o cuando realizas un pedido. Por seguridad, la información sobre tus medios de pagos no la pedimos directamente y permanece privada entre tú y nuestros proveedores de sistemas de pagos electrónicos."
+      },
+      {
+        "tipo": "p",
+        "texto": "En Natif By Issa Vásquez podemos utilizar la información recolectada en línea para procesar y completar su solicitud. También usamos las direcciones de correo electrónico en varios lugares dentro del sitio, para poder enviar comunicaciones por correo electrónico relacionados con tu solicitud. Además, mantenemos un registro de tus compras y cualquier otra cosa que nos permita mejorar y personalizar tu experiencia de compra. También monitoreamos el sitio para verificar los patrones de tráfico con el fin de mejorar su diseño y los productos y servicios que ofrecemos. En Natif By Issa Vásquez reconocemos que debemos utilizar tu información responsablemente."
+      },
+      {
+        "tipo": "p",
+        "texto": "Para darte un mejor servicio, podemos cruzar la información que nos das por varios medios como nuestro sitio www.natifbyissavasquez.com nuestras tiendas fisicas. También podríamos cruzar estos datos con información pública o con algunos establecimientos aliados o subsidiarias. Al cruzar esta información podremos hacerte una mejor comunicación sobre nuestros productos, eventos, promociones o personalizando tu experiencia de compra."
+      },
+      {
+        "tipo": "p",
+        "texto": "Tus datos personales no serán alquilados o vendidos por ningún motivo, pero podrían ser compartidos cuando tu participas en algún sorteo que se realice con alguna otra compañía con la cual nos hayamos asociado para hacerlo que puedan ser de tu interés."
+      },
+      {
+        "tipo": "p",
+        "texto": "SEGURIDAD"
+      },
+      {
+        "tipo": "p",
+        "texto": "Al realizar un pedido con nosotros, queremos que te sientas confiado de que la información personal y los datos de tus tarjetas de crédito están totalmente seguros. En www.natifbyissavasquez.com, con el objetivo de dar la máxima seguridad al sistema de pago, utilizamos sistemas de PAGO SEGURO de entidades financieras de primera línea en comercio electrónico. En este sentido, los datos confidenciales del pago son transmitidos directamente y de forma encriptada a la entidad financiera correspondiente."
+      },
+      {
+        "tipo": "p",
+        "texto": "Cualquier duda adicional al respecto escríbenos a info@natifbyissavasquez.com y con gusto será atendida."
+      }
+    ]
+  },
+  [
+    {
+      "clave": "alulosa",
+      "contenido": "La alulosa es un endulzante natural que no eleva los niveles de glucosa en sangre."
+    },
+    {
+      "clave": "gluten",
+      "contenido": "No, nuestros productos no contienen gluten."
+    },
+    {
+      "clave": "lactosa",
+      "contenido": "Nuestros productos están libres de lactosa."
+    },
+    {
+      "clave": "diabético",
+      "contenido": "Nuestros productos son aptos para personas diabéticas."
+    },
+    {
+      "clave": "envío",
+      "contenido": "Hacemos envíos a toda Colombia. El tiempo estimado de entrega es de 2 a 5 días hábiles."
+    },
+    {
+      "clave": "pago",
+      "contenido": "Aceptamos tarjeta de crédito, débito, PSE, Nequi, Daviplata y transferencia bancaria."
+    },
+    {
+      "clave": "devolución",
+      "contenido": "Puedes hacer devoluciones si el producto está sin abrir. Si está abierto, no aplica por normas sanitarias."
+    },
+    {
+      "clave": "factura",
+      "contenido": "Para solicitar tu factura, por favor indícanos el número de pedido y tus datos fiscales."
+    },
+    {
+      "clave": "ingredientes",
+      "contenido": "Nuestros productos están hechos con colágeno hidrolizado, alulosa, saborizantes naturales y glicerina vegetal."
+    }
+  ]
+]
