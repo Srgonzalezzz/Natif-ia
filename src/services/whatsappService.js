@@ -15,11 +15,16 @@ class WhatsAppService {
 
   async sendMessage(to, body, messageId) {
     try {
+      if (!body || typeof body !== 'string' || body.trim().length === 0) {
+        console.warn(`❗ El mensaje está vacío o mal formado. Se canceló el envío a ${to}`);
+        return;
+      }
+
       if (body.length > 4096) {
         console.warn('⚠️ El texto excede los 4096 caracteres. Dividiendo...');
         const parts = this.splitTextByLength(body);
         for (const part of parts) {
-          await this.sendMessage(to, part); // llamada recursiva para cada fragmento
+          await this.sendMessage(to, part);
         }
         return;
       }
@@ -34,14 +39,16 @@ class WhatsAppService {
         data: {
           messaging_product: 'whatsapp',
           to,
+          type: 'text',
           text: { body },
-          // context: messageId ? { message_id: messageId } : undefined,
+          ...(messageId && { context: { message_id: messageId } })
         },
       });
     } catch (error) {
       console.error('Error sending message:', error?.response?.data || error.message);
     }
   }
+
 
   async markAsRead(messageId) {
     try {
@@ -64,6 +71,10 @@ class WhatsAppService {
 
   async sendInteractiveButtons(to, BodyText, buttons) {
     try {
+      if (!Array.isArray(buttons) || buttons.length < 1 || buttons.length > 3) {
+        throw new Error(`❌ Número de botones inválido: ${buttons.length}. WhatsApp permite entre 1 y 3.`);
+      }
+
       await axios({
         method: 'POST',
         url: `https://graph.facebook.com/${config.API_VERSION}/${config.BUSINESS_PHONE}/messages`,
@@ -83,9 +94,10 @@ class WhatsAppService {
         },
       });
     } catch (error) {
-      console.error('Error sending interactive buttons:', error?.response?.data || error.message);
+      console.error('❌ Error al enviar botones interactivos:', error?.response?.data || error.message);
     }
   }
+
 
   async sendTemplateMessage(to, templateName, languageCode, components) {
     try {

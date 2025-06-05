@@ -10,6 +10,7 @@ import { formatearRespuesta, formatearPorClave } from '../utils/textFormatter.js
 import { buscarPedidoPorGuia } from './shopifyService.js';
 import { productos } from './productCatalog.js';
 import { generarLinkCarritoMultiple } from './shopifyCartLink.js';
+import { limitarTitulo } from '../utils/whatsappUtils.js';
 
 class MessageHandler {
   async handleIncomingMessage(message, senderInfo) {
@@ -113,7 +114,7 @@ Número de guía: *${resultado.tracking}*
         await whatsappService.sendListMessage(userId, {
           header: "🛒 Productos disponibles",
           body: "Selecciona un producto para agregarlo al carrito.",
-          footer: "Puedes agregar varios productos antes de pagar.",
+          footer: "Puedes agregar varios productos antes de pagar, recuerda que viene x12 Unidades.",
           buttonText: "Ver productos",
           sections: [
             {
@@ -140,34 +141,87 @@ Número de guía: *${resultado.tracking}*
           `*${i + 1}.* ${item.nombre} (x${item.cantidad})`
         ).join('\n');
 
-        const botonesEliminar = estado.carrito.map((item, i) => ({
-          type: 'reply',
-          reply: { id: `eliminar_${i}`, title: `Quitar ${item.nombre.slice(0, 20)}` }
-        }));
+        function generarBotonesUnicos(carrito) {
+          const usados = new Set();
+          return carrito.map((item, i) => {
+            let base = `Quitar ${item.nombre}`.trim();
+            let titulo = base.slice(0, 20);
+
+            // Evita títulos duplicados
+            let count = 1;
+            while (usados.has(titulo)) {
+              const suffix = ` ${count++}`;
+              titulo = `${base.slice(0, 20 - suffix.length)}${suffix}`;
+            }
+            usados.add(titulo);
+
+            return {
+              type: 'reply',
+              reply: {
+                id: `eliminar_${i}`,
+                title: titulo
+              }
+            };
+          });
+        }
+
+
+        const botonesEliminar = generarBotonesUnicos(estado.carrito);
+
 
         await whatsappService.sendMessage(userId, `🧾 Aquí está tu carrito:\n${resumen}`);
-        await whatsappService.sendInteractiveButtons(userId, "¿Deseas quitar algún producto?", botonesEliminar);
+        const carrito = estado.carrito || [];
+
+        await whatsappService.sendListMessage(userId, {
+          header: "🗑 Productos en tu carrito",
+          body: "Selecciona el producto que deseas eliminar",
+          footer: "Solo puedes quitar uno a la vez (por ahora)",
+          buttonText: "Eliminar producto",
+          sections: [
+            {
+              title: "Eliminar del carrito",
+              rows: carrito.map((item, i) => ({
+                id: `eliminar_${i}`,
+                title: limitarTitulo(item.nombre, 24),
+                description: `Cantidad: ${item.cantidad || 1}`
+              }))
+            }
+          ]
+        });
+
         return;
       }
 
       // Eliminar producto del carrito
       if (optionId?.startsWith('eliminar_')) {
-        const index = parseInt(optionId.split('_')[1]);
-        const carrito = estado.carrito || [];
+        const index = Number(optionId.split('_')[1]);
+        let carrito = estado.carrito || [];
 
-        if (carrito[index]) {
+        if (!isNaN(index) && carrito[index]) {
           const eliminado = carrito.splice(index, 1)[0];
           await whatsappService.sendMessage(userId, `🗑️ Producto eliminado: *${eliminado.nombre}*`);
-          await stateStore.set(userId, { step: 'seleccionando_producto', carrito });
+          await stateStore.set(userId, { ...estado, step: 'seleccionando_producto', carrito }); // <- Persistencia real aquí
+        } else {
+          await whatsappService.sendMessage(userId, "No pude identificar el producto a eliminar. Intenta nuevamente.");
         }
 
-        await whatsappService.sendInteractiveButtons(userId, "¿Deseas agregar otro producto o finalizar compra?", [
-          { type: 'reply', reply: { id: 'seguir_comprando', title: "AGREGAR PRODUCTO" } },
-          { type: 'reply', reply: { id: 'ver_carrito', title: "VER CARRITO" } },
-          { type: 'reply', reply: { id: 'finalizar_compra', title: "LINK DE PAGO" } }
-        ]);
-        return;
+        // Reconsultamos el estado actualizado
+        const nuevoEstado = await stateStore.get(userId);
+        const nuevoCarrito = nuevoEstado.carrito || [];
+
+        if (nuevoCarrito.length === 0) {
+          await whatsappService.sendMessage(userId, "Tu carrito ahora está vacío 🛒");
+          return await this.sendPostCarritoOptions(userId);
+        }
+
+        const resumen = nuevoCarrito.map((item, i) =>
+          `*${i + 1}.* ${item.nombre} (x${item.cantidad})`
+        ).join('\n');
+
+        await whatsappService.sendMessage(userId, `🧾 Carrito actualizado:\n${resumen}`);
+        return await this.sendPostCarritoOptions(userId);
       }
+
 
       // Finalizar compra
       if (optionId === 'finalizar_compra') {
@@ -228,6 +282,13 @@ Número de guía: *${resultado.tracking}*
     }
   }
 
+  async sendPostCarritoOptions(userId) {
+    await whatsappService.sendInteractiveButtons(userId, "¿Qué deseas hacer ahora?", [
+      { type: 'reply', reply: { id: 'seguir_comprando', title: "AGREGAR PRODUCTO" } },
+      { type: 'reply', reply: { id: 'ver_carrito', title: "VER CARRITO" } },
+      { type: 'reply', reply: { id: 'finalizar_compra', title: "FINALIZAR COMPRA" } }
+    ]);
+  }
 
   async handleMenuOption(userId, option) {
     const lowerOpt = option.toLowerCase();
@@ -244,7 +305,7 @@ Número de guía: *${resultado.tracking}*
       }));
 
       await whatsappService.sendListMessage(userId, {
-        header: "🍪 Catálogo NATIF",
+        header: "🍫 Catálogo NATIF",
         body: "Selecciona el producto que deseas agregar a tu carrito.",
         footer: "Puedes seguir agregando más luego.",
         buttonText: "Ver productos",
@@ -399,7 +460,7 @@ Número de guía: *${resultado.tracking}*
         break;
       case 'hablar con soporte':
         await whatsappService.sendMessage(userId, 'Conectándote con nuestro equipo de soporte humano… Un momento por favor 👩‍💻');
-        const numeroSoporte = '573133433057';
+        const numeroSoporte = '573006888304';
         await whatsappService.sendMessage(numeroSoporte, `📞 El cliente ${userId} solicitó soporte humano.`);
         await stateStore.delete(userId);
         break;
