@@ -11,7 +11,7 @@ import { buscarPedidoPorGuia } from './shopifyService.js';
 import { productos } from './productCatalog.js';
 import { generarLinkCarritoMultiple } from './shopifyCartLink.js';
 import { limitarTitulo } from '../utils/whatsappUtils.js';
-import flujosConversacionales from '../../data/flows.js'; // ✅ ESTE ES EL IMPORT QUE FALTABA
+import flujosConversacionales from '../../data/flows.js';
 
 class MessageHandler {
   async handleIncomingMessage(message, senderInfo) {
@@ -35,12 +35,18 @@ class MessageHandler {
 
   async cerrarChat(userId) {
     await this.clearUserTimers(userId);
-    await whatsappService.sendMessage(userId, "¡Gracias a ti! Finalicé el chat 😊 Si necesitas más ayuda, solo saluda en nuestro chat.");
+    await whatsappService.sendMessage(userId, "✨ ¡Gracias por confiar en nosotros! Si vuelves a necesitar ayuda, solo escríbeme por este mismo chat 💬. ¡Que tengas un excelente día! 🙌");
     await stateStore.delete(userId);
   }
 
   async handleTextMessage(text, userId, senderInfo) {
     const incomingMessage = text.toLowerCase().trim();
+
+    const estado = await stateStore.get(userId) || { estado: 'inicio', subestado: 'menu_principal' };
+    const historial = estado?.historial || [];
+
+    historial.push({ tipo: 'usuario', texto: incomingMessage, timestamp: new Date().toISOString() });
+    await stateStore.set(userId, { ...estado, historial });
 
     if (closingExpressions.some(exp => incomingMessage.includes(exp))) {
       return await this.cerrarChat(userId);
@@ -52,33 +58,98 @@ class MessageHandler {
       return;
     }
 
-    const estado = await stateStore.get(userId) || { step: 'esperando_interaccion' };
-
-    switch (estado.step) {
-      case 'esperando_guia':
-        await this.handleTrackingQuery(incomingMessage, userId);
-        break;
-      case 'esperando_interaccion':
-        await whatsappService.sendMessage(userId, "¿Aún necesitas ayuda? Aquí tienes nuevamente el menú 😊");
-        await this.sendWelcomeMenu(userId);
-        break;
-      case 'question':
-      case 'consultando_pedido':
-        await this.handleAssistantFlow(userId, incomingMessage, senderInfo);
-        break;
-      default:
-        const intencion = detectarIntencion(incomingMessage);
-        if (intencion === 'consulta_pedido') {
-          return await this.handleMenuOption(userId, 'consultar pedido');
+    // const estado = await stateStore.get(userId) || { step: 'esperando_interaccion' };
+    switch (estado.estado) {
+      case 'seguimiento':
+        if (estado.subestado === 'esperando_guia') {
+          await this.handleTrackingQuery(incomingMessage, userId);
         }
+        break;
+
+      case 'ia':
+        if (estado.subestado === 'esperando_pregunta') {
+          await this.handleAssistantFlow(userId, incomingMessage, senderInfo);
+        }
+        break;
+
+      case 'factura':
+        if (estado.subestado === 'confirmando_pedido') {
+          if (incomingMessage.includes('sí')) {
+            const nuevoEstado = {
+              estado: 'factura',
+              subestado: 'recolectando_datos',
+              pedido: estado.pedido,
+              datos_requeridos: [
+                "Nombre / Razón social",
+                "NIT o Cédula",
+                "Dirección",
+                "Ciudad",
+                "Correo"
+              ],
+              datos_recibidos: [],
+              pedido_info: estado.pedido_info
+            };
+            await stateStore.set(userId, nuevoEstado);
+            await whatsappService.sendMessage(userId, "✅ Perfecto, continuemos con los datos para tu factura.");
+            await whatsappService.sendMessage(userId, `Por favor indícame el siguiente dato:\n*${nuevoEstado.datos_requeridos[0]}*`);
+          } else if (incomingMessage.includes('no')) {
+            await whatsappService.sendMessage(userId, "🔁 Entendido. Por favor vuelve a escribir el número de pedido correcto (ej: *#3037*).");
+            await stateStore.set(userId, {
+              estado: 'factura',
+              subestado: 'esperando_pedido'
+            });
+          } else {
+            await whatsappService.sendMessage(userId, "¿Podrías confirmar si el pedido mostrado es correcto? Responde *sí* o *no*.");
+          }
+
+          return;
+        }
+
+        if (estado.subestado === 'recolectando_datos') {
+          const { datos_requeridos, datos_recibidos, pedido } = estado;
+          const siguienteDato = datos_requeridos[datos_recibidos.length];
+          datos_recibidos.push({ campo: siguienteDato, valor: incomingMessage });
+
+          if (datos_recibidos.length === datos_requeridos.length) {
+            const correo = datos_recibidos.find(d => d.campo.toLowerCase().includes('correo'))?.valor;
+            await whatsappService.sendMessage(userId, "✅ Gracias. Hemos recibido todos tus datos.");
+            await whatsappService.sendMessage(userId, `📨 Tu factura será enviada en un plazo de *24 horas* al correo indicado: *${correo || 'no especificado'}*`);
+            await this.sendWelcomeMenu(userId);
+            await stateStore.set(userId, { estado: 'inicio', subestado: 'menu_principal' });
+          } else {
+            const siguiente = datos_requeridos[datos_recibidos.length];
+            await stateStore.set(userId, {
+              ...estado,
+              datos_recibidos
+            });
+            await whatsappService.sendMessage(userId, `Por favor indícame:\n*${siguiente}*`);
+          }
+          return;
+        }
+        break;
+
+
+      default: {
+        const intencion = detectarIntencion(incomingMessage);
+
+        const flujo = Object.values(flujosConversacionales).find(f => f.intencion === intencion);
+        if (flujo) {
+          await this.ejecutarFlujoConversacional(userId, flujo);
+          return;
+        }
+
         await this.sendWelcomeMessage(userId, senderInfo);
         await this.sendWelcomeMenu(userId);
-        await stateStore.set(userId, { step: 'esperando_interaccion' });
+        await stateStore.set(userId, { estado: 'inicio', subestado: 'menu_principal' });
+      }
     }
   }
 
   async handleTrackingQuery(trackingRaw, userId) {
     const trackingNumber = trackingRaw.replace(/\s/g, '').toUpperCase();
+    if (!/^[A-Z0-9]{8,20}$/.test(trackingNumber)) {
+      return await whatsappService.sendMessage(userId, "⚠️ El número de guía no parece válido. Por favor verifica que tenga entre 8 y 20 caracteres alfanuméricos, sin símbolos.");
+    }
     const resultado = await buscarPedidoPorGuia(trackingNumber);
 
     if (resultado) {
@@ -100,243 +171,71 @@ Número de guía: *${resultado.tracking}*
     }, 1500);
   }
 
+
   async handleInteractiveMessage(message) {
     const userId = message.from;
     const option = message.interactive?.button_reply?.title.toLowerCase().trim();
     const estado = await stateStore.get(userId);
 
-    if (estado?.flujo_actual) {
+    if (estado?.estado === 'flujo') {
       const flujo = estado.flujo_actual;
+      const respuesta = option;
 
-      // Flujo: pedido_mal → encadena a flujo devolucion con botones
-      if (flujo.intencion === 'pedido_mal') {
-        if (
-          option.includes('dañado') ||
-          option.includes('incompleto') ||
-          option.includes('equivocado')
-        ) {
-          const siguienteFlujo = Object.values(flujosConversacionales).find(f => f.intencion === 'devolucion');
-          if (siguienteFlujo) {
-            // Guardamos el nuevo flujo como activo
-            await stateStore.set(userId, {
-              step: siguienteFlujo.step,
-              flujo_actual: siguienteFlujo
-            });
-
-            // Enviamos la pregunta del flujo de devolución
-            await whatsappService.sendMessage(userId, `🔁 *${siguienteFlujo.nombre}*`);
-            await whatsappService.sendMessage(userId, siguienteFlujo.pregunta);
-
-            // Enviamos botones "Sí" / "No"
-            await whatsappService.sendInteractiveButtons(userId, "Elige una opción:", [
-              {
-                type: 'reply',
-                reply: { id: 'devolucion_si', title: 'Sí' }
-              },
-              {
-                type: 'reply',
-                reply: { id: 'devolucion_no', title: 'No' }
-              }
-            ]);
-
+      switch (estado.subestado) {
+        case 'reporte_pedido_mal': {
+          const siguiente = Object.values(flujosConversacionales).find(f => f.intencion === 'devolucion');
+          if (siguiente) {
+            await this.ejecutarFlujoConversacional(userId, siguiente);
             return;
           }
-        } else {
-          await whatsappService.sendMessage(userId, "Gracias por tu respuesta. Será revisada por nuestro equipo.");
-          await stateStore.set(userId, { step: 'esperando_interaccion' });
+          break;
+        }
+
+        case 'cambio_devolucion': {
+          if (respuesta === 'sí' || respuesta === 'si') {
+            await whatsappService.sendMessage(userId, flujo.respuesta_si);
+          } else if (respuesta === 'no') {
+            await whatsappService.sendMessage(userId, flujo.respuesta_no);
+          } else {
+            await whatsappService.sendMessage(userId, "¿Podrías confirmar si el producto fue abierto? 🙏");
+          }
+          await stateStore.set(userId, { estado: 'inicio', subestado: 'menu_principal' });
+          await this.sendWelcomeMenu(userId);
+          return;
+        }
+
+        case 'factura': {
+          await whatsappService.sendMessage(userId, flujo.respuesta_final);
+          await whatsappService.sendMessage(userId, "Por favor, indícanos tu número de pedido para generar tu factura (ejemplo: *#3037*).");
+          await stateStore.set(userId, { estado: 'factura', subestado: 'esperando_pedido' });
+          return;
+        }
+
+
+        case 'resenas': {
+          if (respuesta.includes('pública')) {
+            await whatsappService.sendMessage(userId, flujo.respuesta_publica);
+          } else if (respuesta.includes('privado')) {
+            await whatsappService.sendMessage(userId, flujo.respuesta_privada);
+          } else {
+            await whatsappService.sendMessage(userId, flujo.respuesta_publica);
+            await whatsappService.sendMessage(userId, flujo.respuesta_privada);
+          }
+          await stateStore.set(userId, { estado: 'inicio', subestado: 'menu_principal' });
+          await this.sendWelcomeMenu(userId);
+          return;
+        }
+
+        case 'alianzas': {
+          await whatsappService.sendMessage(userId, flujo.respuesta_final);
+          await stateStore.set(userId, { estado: 'inicio', subestado: 'menu_principal' });
           await this.sendWelcomeMenu(userId);
           return;
         }
       }
-      if (flujo.intencion === 'devolucion') {
-        if (option.includes('devolucion_si')) {
-          await whatsappService.sendMessage(userId, flujo.respuesta_no, "Gracias por tu honestidad. Lamentablemente, no podemos recibir productos que ya fueron abiertos por razones sanitarias 🧪. Si tienes dudas adicionales, puedes escribirnos.");
-        } else if (option.includes('devolucion_no')) {
-          await whatsappService.sendMessage(userId, flujo.respuesta_si, "Perfecto. Podemos programar una recogida del producto 📦. Por favor, indícanos tu dirección y disponibilidad para coordinarlo.");
-        } else {
-
-          await whatsappService.sendMessage(userId, "Gracias por tu respuesta. ¿Podrías confirmar si el producto fue abierto? 🙏");
-        }
-
-        await stateStore.set(userId, { step: 'esperando_interaccion' });
-        await this.sendWelcomeMenu(userId);
-        return;
-      }
-
-
     }
 
-    if (estado?.step === 'seleccionando_producto') {
-      const optionId = message.interactive?.button_reply?.id || message.interactive?.list_reply?.id;
-      const optionTitle = message.interactive?.button_reply?.title?.toLowerCase().trim() ||
-        message.interactive?.list_reply?.title?.toLowerCase().trim();
-
-      // Acción especial: seguir comprando
-      if (optionId === 'seguir_comprando') {
-        await whatsappService.sendListMessage(userId, {
-          header: "🛒 Productos disponibles",
-          body: "Selecciona un producto para agregarlo al carrito.",
-          footer: "Puedes agregar varios productos antes de pagar, recuerda que viene x12 Unidades.",
-          buttonText: "Ver productos",
-          sections: [
-            {
-              title: "Catálogo NATIF",
-              rows: productos.map(p => ({
-                id: p.id,
-                title: p.nombre.slice(0, 24),
-                description: p.descripcion?.slice(0, 40) || ''
-              }))
-            }
-          ]
-        });
-        return;
-      }
-
-      // Acción especial: ver carrito
-      if (optionId === 'ver_carrito') {
-        if (!estado?.carrito || estado.carrito.length === 0) {
-          await whatsappService.sendMessage(userId, "Tu carrito está vacío 🛒");
-          return;
-        }
-
-        const resumen = estado.carrito.map((item, i) =>
-          `*${i + 1}.* ${item.nombre} (x${item.cantidad})`
-        ).join('\n');
-
-        function generarBotonesUnicos(carrito) {
-          const usados = new Set();
-          return carrito.map((item, i) => {
-            let base = `Quitar ${item.nombre}`.trim();
-            let titulo = base.slice(0, 20);
-
-            // Evita títulos duplicados
-            let count = 1;
-            while (usados.has(titulo)) {
-              const suffix = ` ${count++}`;
-              titulo = `${base.slice(0, 20 - suffix.length)}${suffix}`;
-            }
-            usados.add(titulo);
-
-            return {
-              type: 'reply',
-              reply: {
-                id: `eliminar_${i}`,
-                title: titulo
-              }
-            };
-          });
-        }
-
-
-        const botonesEliminar = generarBotonesUnicos(estado.carrito);
-
-
-        await whatsappService.sendMessage(userId, `🧾 Aquí está tu carrito:\n${resumen}`);
-        const carrito = estado.carrito || [];
-
-        await whatsappService.sendListMessage(userId, {
-          header: "🗑 Productos en tu carrito",
-          body: "Selecciona el producto que deseas eliminar",
-          footer: "Solo puedes quitar uno a la vez (por ahora)",
-          buttonText: "Eliminar producto",
-          sections: [
-            {
-              title: "Eliminar del carrito",
-              rows: carrito.map((item, i) => ({
-                id: `eliminar_${i}`,
-                title: limitarTitulo(item.nombre, 24),
-                description: `Cantidad: ${item.cantidad || 1}`
-              }))
-            }
-          ]
-        });
-
-        return;
-      }
-
-      // Eliminar producto del carrito
-      if (optionId?.startsWith('eliminar_')) {
-        const index = Number(optionId.split('_')[1]);
-        let carrito = estado.carrito || [];
-
-        if (!isNaN(index) && carrito[index]) {
-          const eliminado = carrito.splice(index, 1)[0];
-          await whatsappService.sendMessage(userId, `🗑️ Producto eliminado: *${eliminado.nombre}*`);
-          await stateStore.set(userId, { ...estado, step: 'seleccionando_producto', carrito }); // <- Persistencia real aquí
-        } else {
-          await whatsappService.sendMessage(userId, "No pude identificar el producto a eliminar. Intenta nuevamente.");
-        }
-
-        // Reconsultamos el estado actualizado
-        const nuevoEstado = await stateStore.get(userId);
-        const nuevoCarrito = nuevoEstado.carrito || [];
-
-        if (nuevoCarrito.length === 0) {
-          await whatsappService.sendMessage(userId, "Tu carrito ahora está vacío 🛒");
-          return await this.sendPostCarritoOptions(userId);
-        }
-
-        const resumen = nuevoCarrito.map((item, i) =>
-          `*${i + 1}.* ${item.nombre} (x${item.cantidad})`
-        ).join('\n');
-
-        await whatsappService.sendMessage(userId, `🧾 Carrito actualizado:\n${resumen}`);
-        return await this.sendPostCarritoOptions(userId);
-      }
-
-
-      // Finalizar compra
-      if (optionId === 'finalizar_compra') {
-        const carrito = estado?.carrito || [];
-
-        if (carrito.length === 0) {
-          await whatsappService.sendMessage(userId, "Tu carrito está vacío 🛒");
-          return;
-        }
-
-        const resumen = carrito.map((item, i) =>
-          `*${i + 1}.* ${item.nombre} (x${item.cantidad})`
-        ).join('\n');
-
-        await whatsappService.sendMessage(userId, `🧾 Tu carrito:\n${resumen}`);
-        const link = generarLinkCarritoMultiple(carrito);
-        await whatsappService.sendMessage(userId, `🛒 ¡Listo! Aquí tienes tu link para finalizar la compra:\n${link}`);
-
-
-        await this.sendWelcomeMenu(userId);
-        await stateStore.set(userId, { step: 'esperando_interaccion' });
-        return;
-      }
-
-      // Si eligió un producto del catálogo
-      const productoElegido = productos.find(p =>
-        p.id === optionId || p.nombre.toLowerCase().trim() === optionTitle
-      );
-
-      if (!productoElegido) {
-        await whatsappService.sendMessage(userId, "Producto no reconocido. Intenta nuevamente.");
-        return;
-      }
-
-      const carrito = estado.carrito || [];
-      carrito.push({ variantId: productoElegido.variantId, nombre: productoElegido.nombre, cantidad: 1 });
-
-      await stateStore.set(userId, { step: 'seleccionando_producto', carrito });
-
-      const resumen = carrito.map((item, i) =>
-        `*${i + 1}.* ${item.nombre} (x${item.cantidad})`
-      ).join('\n');
-
-      await whatsappService.sendMessage(userId, `🧾 Productos en tu carrito:\n${resumen}`);
-
-      await whatsappService.sendInteractiveButtons(userId, "¿Qué deseas hacer ahora?", [
-        { type: 'reply', reply: { id: 'seguir_comprando', title: "AGREGAR PRODUCTO" } },
-        { type: 'reply', reply: { id: 'ver_carrito', title: "VER CARRITO" } },
-        { type: 'reply', reply: { id: 'finalizar_compra', title: "LINK DE PAGO" } }
-      ]);
-      return;
-    }
-
+    // Si no está en flujo, comportamiento por defecto o menú
     if (["si, gracias", "otra pregunta", "hablar con soporte"].includes(option)) {
       await this.handleFeedbackButtons(userId, option);
     } else {
@@ -357,7 +256,7 @@ Número de guía: *${resultado.tracking}*
     let response = '';
 
     if (lowerOpt.includes('consultar')) {
-      await stateStore.set(userId, { step: 'esperando_guia' });
+      await stateStore.set(userId, { estado: 'seguimiento', subestado: 'esperando_guia' });
       response = 'Por favor, envíame tu número de guía para rastrear tu pedido 📦';
     } // Cuando se selecciona desde el menú "Comprar producto"
     else if (lowerOpt.includes('comprar')) {
@@ -388,7 +287,7 @@ Número de guía: *${resultado.tracking}*
 
 
     } else if (lowerOpt.includes('ia natif')) {
-      await stateStore.set(userId, { step: 'question' });
+      await stateStore.set(userId, { estado: 'ia', subestado: 'esperando_pregunta' });
       this.setInactivityTimers(userId);
       response = 'Genial! Soy la IA NATIF y estoy aquí para ayudarte 🤖';
     } else {
@@ -424,6 +323,13 @@ Número de guía: *${resultado.tracking}*
 
       await whatsappService.sendMessage(userId, respuesta);
 
+      const actualizado = await stateStore.get(userId);
+      const historial = actualizado?.historial || [];
+      historial.push({ tipo: 'bot', texto: respuesta, timestamp: new Date().toISOString() });
+
+      await stateStore.set(userId, { ...actualizado, historial });
+
+
       await registrarLog({
         userId,
         pregunta: message,
@@ -436,7 +342,7 @@ Número de guía: *${resultado.tracking}*
       this.setInactivityTimers(userId);
     } catch (err) {
       console.error("Error en flujo IA:", err);
-      await whatsappService.sendMessage(userId, "Lo siento, hubo un error procesando tu solicitud.");
+      await whatsappService.sendMessage(userId, "😓 Uy, algo salió mal procesando tu solicitud. Intenta nuevamente o escribe *menu* para volver al inicio.");
     }
   }
 
@@ -560,7 +466,7 @@ Número de guía: *${resultado.tracking}*
         break;
       case 'otra pregunta':
         await whatsappService.sendMessage(userId, '¡Perfecto! Puedes escribirme tu siguiente inquietud.');
-        await stateStore.set(userId, { step: 'question' });
+        await stateStore.set(userId, { estado: 'ia', subestado: 'esperando_pregunta' });
         break;
       case 'hablar con soporte':
         await whatsappService.sendMessage(userId, 'Conectándote con nuestro equipo de soporte humano… Un momento por favor 👩‍💻');
@@ -573,7 +479,7 @@ Número de guía: *${resultado.tracking}*
 
   async sendWelcomeMessage(to, senderInfo) {
     const name = senderInfo?.profile?.name || senderInfo?.wa_id || "Cliente";
-    await whatsappService.sendMessage(to, `Hola ${name}, soy la IA NATIF, estoy aquí para brindarte soluciones :3`);
+    await whatsappService.sendMessage(to, `🌟 ¡Hola ${name}! Soy la IA NATIF 🤖\nEstoy aquí para ayudarte con tus pedidos, compras o cualquier duda que tengas 😊`);
   }
 
   async sendWelcomeMenu(to) {
@@ -584,7 +490,6 @@ Número de guía: *${resultado.tracking}*
     ];
     await whatsappService.sendInteractiveButtons(to, "¿Cómo puedo ayudarte el día de hoy?", buttons);
   }
-
 
 }
 
