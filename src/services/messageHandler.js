@@ -9,11 +9,12 @@ import detectarIntencion from '../utils/intentionClassifier.js';
 import { formatearRespuesta, formatearPorClave } from '../utils/textFormatter.js';
 import { buscarPedidoPorGuia } from './shopifyService.js';
 import { productos } from './productCatalog.js';
-import { generarLinkCarritoMultiple } from './shopifyCartLink.js';
-import { limitarTitulo } from '../utils/whatsappUtils.js';
 import flujosConversacionales from '../../data/flows.js';
+import flujos from '../../data/flows.js'; // Ajusta la ruta según corresponda
+
 
 class MessageHandler {
+  // INTERPRETACION DE MENSAJE 
   async handleIncomingMessage(message, senderInfo) {
     if (!message) return;
 
@@ -32,13 +33,13 @@ class MessageHandler {
       console.error("Error al manejar mensaje entrante:", error);
     }
   }
-
+  // CIERRE DE CHAT
   async cerrarChat(userId) {
     await this.clearUserTimers(userId);
     await whatsappService.sendMessage(userId, "✨ ¡Gracias por confiar en nosotros! Si vuelves a necesitar ayuda, solo escríbeme por este mismo chat 💬. ¡Que tengas un excelente día! 🙌");
     await stateStore.delete(userId);
   }
-
+  // ACCION DE INTERACION DE MENU Y MAS
   async handleTextMessage(text, userId, senderInfo) {
     const incomingMessage = text.toLowerCase().trim();
 
@@ -144,7 +145,7 @@ class MessageHandler {
       }
     }
   }
-
+  // CONSULTA DE PEDIDO
   async handleTrackingQuery(trackingRaw, userId) {
     const trackingNumber = trackingRaw.replace(/\s/g, '').toUpperCase();
     if (!/^[A-Z0-9]{8,20}$/.test(trackingNumber)) {
@@ -170,8 +171,19 @@ Número de guía: *${resultado.tracking}*
       await this.sendWelcomeMenu(userId);
     }, 1500);
   }
+  // INTERACCIONES DE FLUJO
+  // async handleInteractiveMessage(message) {
+  //   const userId = message.from;
+  //   const option = message.interactive?.button_reply?.title.toLowerCase().trim();
+  //   const estado = await stateStore.get(userId);
 
-
+  //   // Si no está en flujo, comportamiento por defecto o menú
+  //   if (["si, gracias", "otra pregunta", "hablar con soporte"].includes(option)) {
+  //     await this.handleFeedbackButtons(userId, option);
+  //   } else {
+  //     await this.handleMenuOption(userId, option);
+  //   }
+  // }
   async handleInteractiveMessage(message) {
     const userId = message.from;
     const option = message.interactive?.button_reply?.title.toLowerCase().trim();
@@ -183,13 +195,38 @@ Número de guía: *${resultado.tracking}*
 
       switch (estado.subestado) {
         case 'reporte_pedido_mal': {
-          const siguiente = Object.values(flujosConversacionales).find(f => f.intencion === 'devolucion');
-          if (siguiente) {
-            await this.ejecutarFlujoConversacional(userId, siguiente);
+          const respuesta = option.toLowerCase();
+
+          if (respuesta.includes('equivocado') || respuesta.includes('incompleto')) {
+            await whatsappService.sendMessage(userId, "Por favor, indícanos tu número de pedido para ayudarte (ejemplo: *#1234*).");
+            await stateStore.set(userId, {
+              estado: 'esperando_numero_orden',
+              motivo: respuesta,
+              flujo_origen: 'pedido_mal'
+            });
             return;
           }
-          break;
+
+          // Producto dañado u otro
+          const siguiente = Object.values(flujos).find(f => f.intencion === 'devolucion');
+          if (siguiente) {
+            const botones = siguiente.opciones.map((title, i) => ({
+              type: "reply",
+              reply: { id: `btn_${i}`, title }
+            }));
+            await stateStore.set(userId, {
+              estado: 'flujo',
+              flujo_actual: siguiente,
+              subestado: siguiente.step
+            });
+            await whatsappService.sendInteractiveButtons(userId, siguiente.pregunta, botones);
+          } else {
+            await whatsappService.sendMessage(userId, "Gracias por tu mensaje. Lo revisaremos.");
+          }
+          return;
         }
+
+
 
         case 'cambio_devolucion': {
           if (respuesta === 'sí' || respuesta === 'si') {
@@ -197,20 +234,17 @@ Número de guía: *${resultado.tracking}*
           } else if (respuesta === 'no') {
             await whatsappService.sendMessage(userId, flujo.respuesta_no);
           } else {
-            await whatsappService.sendMessage(userId, "¿Podrías confirmar si el producto fue abierto? 🙏");
+            await whatsappService.sendMessage(userId, "¿Podrías confirmar si el producto fue abierto?");
           }
-          await stateStore.set(userId, { estado: 'inicio', subestado: 'menu_principal' });
-          await this.sendWelcomeMenu(userId);
-          return;
+          break;
         }
 
-        case 'factura': {
+        case 'factura_electronica': {
           await whatsappService.sendMessage(userId, flujo.respuesta_final);
-          await whatsappService.sendMessage(userId, "Por favor, indícanos tu número de pedido para generar tu factura (ejemplo: *#3037*).");
+          await whatsappService.sendMessage(userId, "Por favor, indícanos tu número de pedido para generar la factura (ejemplo: *#1234*).");
           await stateStore.set(userId, { estado: 'factura', subestado: 'esperando_pedido' });
           return;
         }
-
 
         case 'resenas': {
           if (respuesta.includes('pública')) {
@@ -221,28 +255,29 @@ Número de guía: *${resultado.tracking}*
             await whatsappService.sendMessage(userId, flujo.respuesta_publica);
             await whatsappService.sendMessage(userId, flujo.respuesta_privada);
           }
-          await stateStore.set(userId, { estado: 'inicio', subestado: 'menu_principal' });
-          await this.sendWelcomeMenu(userId);
-          return;
+          break;
         }
 
         case 'alianzas': {
           await whatsappService.sendMessage(userId, flujo.respuesta_final);
-          await stateStore.set(userId, { estado: 'inicio', subestado: 'menu_principal' });
-          await this.sendWelcomeMenu(userId);
-          return;
+          break;
         }
+
+        default:
+          await whatsappService.sendMessage(userId, "Gracias por tu respuesta. Pronto te ayudaremos.");
       }
+
+      // Reset
+      await stateStore.set(userId, { estado: 'inicio', subestado: 'menu_principal' });
+      await this.sendWelcomeMenu(userId);
+      return;
     }
 
-    // Si no está en flujo, comportamiento por defecto o menú
-    if (["si, gracias", "otra pregunta", "hablar con soporte"].includes(option)) {
-      await this.handleFeedbackButtons(userId, option);
-    } else {
-      await this.handleMenuOption(userId, option);
-    }
+    // Si no está en un flujo
+    await this.handleMenuOption(userId, option);
   }
 
+  // OPCIONES DEL CARRITO
   async sendPostCarritoOptions(userId) {
     await whatsappService.sendInteractiveButtons(userId, "¿Qué deseas hacer ahora?", [
       { type: 'reply', reply: { id: 'seguir_comprando', title: "AGREGAR PRODUCTO" } },
@@ -250,7 +285,7 @@ Número de guía: *${resultado.tracking}*
       { type: 'reply', reply: { id: 'finalizar_compra', title: "FINALIZAR COMPRA" } }
     ]);
   }
-
+  // MENU
   async handleMenuOption(userId, option) {
     const lowerOpt = option.toLowerCase();
     let response = '';
@@ -281,9 +316,7 @@ Número de guía: *${resultado.tracking}*
           }
         ]
       });
-      await stateStore.set(userId, { step: 'seleccionando_producto', carrito: [] });
-
-
+      await stateStore.set(userId, { estado: 'carrito', subestado: 'seleccionando_producto', carrito: [] });
 
 
     } else if (lowerOpt.includes('ia natif')) {
@@ -296,7 +329,7 @@ Número de guía: *${resultado.tracking}*
 
     await whatsappService.sendMessage(userId, response);
   }
-
+  // CONSULTA LOCAL O IA
   async handleAssistantFlow(userId, message, senderInfo) {
     try {
       const state = await stateStore.get(userId);
@@ -345,7 +378,7 @@ Número de guía: *${resultado.tracking}*
       await whatsappService.sendMessage(userId, "😓 Uy, algo salió mal procesando tu solicitud. Intenta nuevamente o escribe *menu* para volver al inicio.");
     }
   }
-
+  // POR DEFINIR 
   async ejecutarFlujoConversacional(userId, flujo) {
     await whatsappService.sendMessage(userId, `📝 *${flujo.nombre}*`);
     await whatsappService.sendMessage(userId, flujo.pregunta);
@@ -362,11 +395,12 @@ Número de guía: *${resultado.tracking}*
     }
 
     await stateStore.set(userId, {
-      step: flujo.step,
+      estado: 'flujo',
+      subestado: flujo.step,
       flujo_actual: flujo
     });
   }
-
+  // MENSAJE HACIA SOPORTE HUMANO
   async redirigirASoporte(userId, mensaje, senderInfo) {
     const numeroSupervisor = '573006888304'; // Número de asesor que recibirá el reclamo
     const nombreCliente = senderInfo?.profile?.name || 'Cliente sin nombre';
@@ -416,14 +450,13 @@ Número de guía: *${resultado.tracking}*
       await whatsappService.sendMessage(userId, "Hubo un error al contactar al equipo de soporte 😔. Intenta de nuevo más tarde.");
     }
   }
-
-
+  // CIERRE DE INACTIVIDAD
   async clearUserTimers(userId) {
     const state = await stateStore.get(userId);
     if (state?.timeout) clearTimeout(state.timeout);
     if (state?.finalClosureTimeout) clearTimeout(state.finalClosureTimeout);
   }
-
+  // ACCIONES DE INACTIVIDAD
   setInactivityTimers(userId) {
     const warningDelay = 60000;
     const finalDelay = 60000;
@@ -458,7 +491,7 @@ Número de guía: *${resultado.tracking}*
 
     run();
   }
-
+  // MENU FINAL
   async handleFeedbackButtons(userId, option) {
     switch (option) {
       case 'si, gracias':
@@ -476,12 +509,12 @@ Número de guía: *${resultado.tracking}*
         break;
     }
   }
-
+  // IA NATIF
   async sendWelcomeMessage(to, senderInfo) {
     const name = senderInfo?.profile?.name || senderInfo?.wa_id || "Cliente";
     await whatsappService.sendMessage(to, `🌟 ¡Hola ${name}! Soy la IA NATIF 🤖\nEstoy aquí para ayudarte con tus pedidos, compras o cualquier duda que tengas 😊`);
   }
-
+  // MENU PRINCIPAL
   async sendWelcomeMenu(to) {
     const buttons = [
       { type: 'reply', reply: { id: 'opcion_1', title: 'CONSULTAR PEDIDO' } },

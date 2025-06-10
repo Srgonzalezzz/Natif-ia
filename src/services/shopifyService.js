@@ -41,3 +41,24 @@ export async function buscarPedidoPorGuia(trackingNumber) {
     return null;
   }
 }
+export async function buscarPedidoPorNumero(numero) {
+  try {
+    const res = await axios.get(
+      `https://${SHOPIFY_STORE}.myshopify.com/admin/api/2023-10/orders.json?name=${encodeURIComponent('#' + numero)}`,
+      {
+        headers: {
+          'X-Shopify-Access-Token': ACCESS_TOKEN,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const pedido = res.data.orders[0];
+    return pedido;
+  } catch (err) {
+    console.error('Error consultando orden:', err.response?.data || err.message);
+    return null;
+  }
+}
+
+

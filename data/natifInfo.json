@@ -24,7 +24,7 @@
       }
     ]
   },
-   {
+  {
     "clave": "gummis, gomas, gomitas",
     "contenido": [
       {
@@ -649,42 +649,28 @@
       }
     ]
   },
-  [
-    {
-      "clave": "alulosa",
-      "contenido": "La alulosa es un endulzante natural que no eleva los niveles de glucosa en sangre."
-    },
-    {
-      "clave": "gluten",
-      "contenido": "No, nuestros productos no contienen gluten."
-    },
-    {
-      "clave": "lactosa",
-      "contenido": "Nuestros productos están libres de lactosa."
-    },
-    {
-      "clave": "diabético",
-      "contenido": "Nuestros productos son aptos para personas diabéticas."
-    },
-    {
-      "clave": "envío",
-      "contenido": "Hacemos envíos a toda Colombia. El tiempo estimado de entrega es de 2 a 5 días hábiles."
-    },
-    {
-      "clave": "pago",
-      "contenido": "Aceptamos tarjeta de crédito, débito, PSE, Nequi, Daviplata y transferencia bancaria."
-    },
-    {
-      "clave": "devolución",
-      "contenido": "Puedes hacer devoluciones si el producto está sin abrir. Si está abierto, no aplica por normas sanitarias."
-    },
-    {
-      "clave": "factura",
-      "contenido": "Para solicitar tu factura, por favor indícanos el número de pedido y tus datos fiscales."
-    },
-    {
-      "clave": "ingredientes",
-      "contenido": "Nuestros productos están hechos con colágeno hidrolizado, alulosa, saborizantes naturales y glicerina vegetal."
-    }
-  ]
+  {
+    "clave": "alulosa",
+    "contenido": []
+  },
+  {
+    "clave": "gluten",
+    "contenido": []
+  },
+  {
+    "clave": "lactosa",
+    "contenido": []
+  },
+  {
+    "clave": "diabético",
+    "contenido": []
+  },
+  {
+    "clave": "envios",
+    "contenido": []
+  },
+  {
+    "clave": "ingredientes",
+    "contenido": []
+  }
 ]

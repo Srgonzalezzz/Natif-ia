@@ -1,11 +1,18 @@
 const flujos = {
   flujo_2: {
     intencion: "pedido_mal",
-    keywords: ["me llegó mal", "pedido dañado", "pedido equivocado", "pedido incompleto", "llegó mal", "mi pedido llego mal"],
+    keywords: [
+      "me llegó mal", "pedido dañado", "pedido equivocado", "pedido incompleto",
+      "llegó mal", "mi pedido llego mal", "producto malo", "producto dañado",
+      "producto incorrecto", "pedido mal", "producto roto", "me llegó dañado"
+    ],
     nombre: "Me llegó mal el pedido",
     step: "reporte_pedido_mal",
     pregunta: "Lamentamos lo ocurrido. ¿Qué ocurrió exactamente?",
-    opciones: ["Producto equivocado", "Producto dañado", "Producto incompleto"]
+    opciones: ["Producto equivocado", "Producto dañado", "Producto incompleto"],
+    respuesta_equivocado: ["prueba"],
+    respuesta_dañado: ["prueba 2"],
+    respuesta_incompleto: ["prueba 3"]
   },
   flujo_3: {
     intencion: "devolucion",
@@ -85,3 +92,4 @@ const flujos = {
 };
 
 export default flujos;
+  
