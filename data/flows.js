@@ -44,7 +44,7 @@ const flujos = {
     respuesta_exterior: ["¿En qué país estás?", "¿Eres cliente final o distribuidor?", "¿Qué productos te interesan?"]
   },
   flujo_6: {
-    intencion: "faq_compra",
+    intencion: "factura_compra",
     keywords: ["métodos de pago", "tiempo de entrega", "envío", "promociones"],
     nombre: "Preguntas frecuentes de compra",
     step: "faq_compra",
@@ -92,4 +92,3 @@ const flujos = {
 };
 
 export default flujos;
-  
