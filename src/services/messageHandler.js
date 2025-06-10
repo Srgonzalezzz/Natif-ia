@@ -10,11 +10,8 @@ import { formatearRespuesta, formatearPorClave } from '../utils/textFormatter.js
 import { buscarPedidoPorGuia } from './shopifyService.js';
 import { productos } from './productCatalog.js';
 import flujosConversacionales from '../../data/flows.js';
-import flujos from '../../data/flows.js'; // Ajusta la ruta según corresponda
 import { generarLinkCarritoMultiple } from './shopifyCartLink.js';
 import { limitarTitulo } from '../utils/whatsappUtils.js';
-
-
 
 class MessageHandler {
   // INTERPRETACION DE MENSAJE 
@@ -36,12 +33,14 @@ class MessageHandler {
       console.error("Error al manejar mensaje entrante:", error);
     }
   }
+
   // CIERRE DE CHAT
   async cerrarChat(userId) {
     await this.clearUserTimers(userId);
     await whatsappService.sendMessage(userId, "✨ ¡Gracias por confiar en nosotros! Si vuelves a necesitar ayuda, solo escríbeme por este mismo chat 💬. ¡Que tengas un excelente día! 🙌");
     await stateStore.delete(userId);
   }
+
   // ACCION DE INTERACION DE MENU Y MAS
   async handleTextMessage(text, userId, senderInfo) {
     const incomingMessage = text.toLowerCase().trim();
@@ -76,63 +75,6 @@ class MessageHandler {
         }
         break;
 
-      case 'factura':
-        if (estado.subestado === 'confirmando_pedido') {
-          if (incomingMessage.includes('sí')) {
-            const nuevoEstado = {
-              estado: 'factura',
-              subestado: 'recolectando_datos',
-              pedido: estado.pedido,
-              datos_requeridos: [
-                "Nombre / Razón social",
-                "NIT o Cédula",
-                "Dirección",
-                "Ciudad",
-                "Correo"
-              ],
-              datos_recibidos: [],
-              pedido_info: estado.pedido_info
-            };
-            await stateStore.set(userId, nuevoEstado);
-            await whatsappService.sendMessage(userId, "✅ Perfecto, continuemos con los datos para tu factura.");
-            await whatsappService.sendMessage(userId, `Por favor indícame el siguiente dato:\n*${nuevoEstado.datos_requeridos[0]}*`);
-          } else if (incomingMessage.includes('no')) {
-            await whatsappService.sendMessage(userId, "🔁 Entendido. Por favor vuelve a escribir el número de pedido correcto (ej: *#3037*).");
-            await stateStore.set(userId, {
-              estado: 'factura',
-              subestado: 'esperando_pedido'
-            });
-          } else {
-            await whatsappService.sendMessage(userId, "¿Podrías confirmar si el pedido mostrado es correcto? Responde *sí* o *no*.");
-          }
-
-          return;
-        }
-
-        if (estado.subestado === 'recolectando_datos') {
-          const { datos_requeridos, datos_recibidos, pedido } = estado;
-          const siguienteDato = datos_requeridos[datos_recibidos.length];
-          datos_recibidos.push({ campo: siguienteDato, valor: incomingMessage });
-
-          if (datos_recibidos.length === datos_requeridos.length) {
-            const correo = datos_recibidos.find(d => d.campo.toLowerCase().includes('correo'))?.valor;
-            await whatsappService.sendMessage(userId, "✅ Gracias. Hemos recibido todos tus datos.");
-            await whatsappService.sendMessage(userId, `📨 Tu factura será enviada en un plazo de *24 horas* al correo indicado: *${correo || 'no especificado'}*`);
-            await this.sendWelcomeMenu(userId);
-            await stateStore.set(userId, { estado: 'inicio', subestado: 'menu_principal' });
-          } else {
-            const siguiente = datos_requeridos[datos_recibidos.length];
-            await stateStore.set(userId, {
-              ...estado,
-              datos_recibidos
-            });
-            await whatsappService.sendMessage(userId, `Por favor indícame:\n*${siguiente}*`);
-          }
-          return;
-        }
-        break;
-
-
       default: {
         const intencion = detectarIntencion(incomingMessage);
 
@@ -148,6 +90,7 @@ class MessageHandler {
       }
     }
   }
+
   // CONSULTA DE PEDIDO
   async handleTrackingQuery(trackingRaw, userId) {
     const trackingNumber = trackingRaw.replace(/\s/g, '').toUpperCase();
@@ -174,19 +117,8 @@ Número de guía: *${resultado.tracking}*
       await this.sendWelcomeMenu(userId);
     }, 1500);
   }
-  // INTERACCIONES DE FLUJO
-  // async handleInteractiveMessage(message) {
-  //   const userId = message.from;
-  //   const option = message.interactive?.button_reply?.title.toLowerCase().trim();
-  //   const estado = await stateStore.get(userId);
 
-  //   // Si no está en flujo, comportamiento por defecto o menú
-  //   if (["si, gracias", "otra pregunta", "hablar con soporte"].includes(option)) {
-  //     await this.handleFeedbackButtons(userId, option);
-  //   } else {
-  //     await this.handleMenuOption(userId, option);
-  //   }
-  // }
+  // INTERACCIONES DE FLUJO
   async handleInteractiveMessage(message) {
     const userId = message.from;
     const option = message.interactive?.button_reply?.title.toLowerCase().trim();
@@ -422,7 +354,8 @@ Número de guía: *${resultado.tracking}*
 
     await whatsappService.sendMessage(userId, response);
   }
-  // CONSULTA LOCAL O IA
+
+  // CONSULTA LOCAL O IA, detecion de flujo o
   async handleAssistantFlow(userId, message, senderInfo) {
     try {
       const state = await stateStore.get(userId);
@@ -471,6 +404,7 @@ Número de guía: *${resultado.tracking}*
       await whatsappService.sendMessage(userId, "😓 Uy, algo salió mal procesando tu solicitud. Intenta nuevamente o escribe *menu* para volver al inicio.");
     }
   }
+
   // POR DEFINIR 
   async ejecutarFlujoConversacional(userId, flujo) {
     await whatsappService.sendMessage(userId, `📝 *${flujo.nombre}*`);
@@ -493,6 +427,7 @@ Número de guía: *${resultado.tracking}*
       flujo_actual: flujo
     });
   }
+
   // MENSAJE HACIA SOPORTE HUMANO
   async redirigirASoporte(userId, mensaje, senderInfo) {
     const numeroSupervisor = '573006888304'; // Número de asesor que recibirá el reclamo
@@ -543,12 +478,14 @@ Número de guía: *${resultado.tracking}*
       await whatsappService.sendMessage(userId, "Hubo un error al contactar al equipo de soporte 😔. Intenta de nuevo más tarde.");
     }
   }
+
   // CIERRE DE INACTIVIDAD
   async clearUserTimers(userId) {
     const state = await stateStore.get(userId);
     if (state?.timeout) clearTimeout(state.timeout);
     if (state?.finalClosureTimeout) clearTimeout(state.finalClosureTimeout);
   }
+
   // ACCIONES DE INACTIVIDAD
   setInactivityTimers(userId) {
     const warningDelay = 60000;
@@ -584,6 +521,7 @@ Número de guía: *${resultado.tracking}*
 
     run();
   }
+
   // MENU FINAL
   async handleFeedbackButtons(userId, option) {
     switch (option) {
@@ -602,11 +540,13 @@ Número de guía: *${resultado.tracking}*
         break;
     }
   }
+
   // IA NATIF
   async sendWelcomeMessage(to, senderInfo) {
     const name = senderInfo?.profile?.name || senderInfo?.wa_id || "Cliente";
     await whatsappService.sendMessage(to, `🌟 ¡Hola ${name}! Soy la IA NATIF 🤖\nEstoy aquí para ayudarte con tus pedidos, compras o cualquier duda que tengas 😊`);
   }
+
   // MENU PRINCIPAL
   async sendWelcomeMenu(to) {
     const buttons = [
