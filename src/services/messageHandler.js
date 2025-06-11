@@ -12,6 +12,10 @@ import { productos } from './productCatalog.js';
 import flujosConversacionales from '../../data/flows.js';
 import { generarLinkCarritoMultiple } from './shopifyCartLink.js';
 import { limitarTitulo } from '../utils/whatsappUtils.js';
+import { buscarPedidoPorNumero } from './shopifyService.js';
+import { guardarFacturaEnSheet } from '../utils/googleOAuthLogger.js';
+
+
 
 class MessageHandler {
   // INTERPRETACION DE MENSAJE 
@@ -75,19 +79,37 @@ class MessageHandler {
         }
         break;
 
+      case 'factura':
+        await this.factura(userId, incomingMessage, estado);
+        break;
+
+
       default: {
         const intencion = detectarIntencion(incomingMessage);
-
         const flujo = Object.values(flujosConversacionales).find(f => f.intencion === intencion);
+
+        if (flujo?.intencion === 'factura') {
+          await stateStore.set(userId, { estado: 'factura', subestado: 'factura_electronica' });
+          await whatsappService.sendMessage(userId, 'Claro, indícanos tu número de pedido para emitir tu factura electrónica 🧾');
+          return;
+        }
+
+        // 👇 AGREGAR ESTE CÓDIGO AL FINAL, para controlar el cierre
+        if (estado.estado === 'inicio' && estado.subestado === 'menu_principal') {
+          await whatsappService.sendMessage(userId, "💬 ¿Mi respuesta fue de ayuda?");
+        }
+
         if (flujo) {
           await this.ejecutarFlujoConversacional(userId, flujo);
           return;
         }
 
+        // Si no se detectó ninguna intención válida, mostrar menú
         await this.sendWelcomeMessage(userId, senderInfo);
         await this.sendWelcomeMenu(userId);
         await stateStore.set(userId, { estado: 'inicio', subestado: 'menu_principal' });
       }
+
     }
   }
 
@@ -118,190 +140,182 @@ Número de guía: *${resultado.tracking}*
     }, 1500);
   }
 
-  // INTERACCIONES DE FLUJO
+  // INTERACCIONES de mensajes
   async handleInteractiveMessage(message) {
     const userId = message.from;
-    const option = message.interactive?.button_reply?.title.toLowerCase().trim();
     const estado = await stateStore.get(userId);
 
+    const optionId = message.interactive?.button_reply?.id || message.interactive?.list_reply?.id;
+    const optionTitle = message.interactive?.button_reply?.title?.toLowerCase().trim() ||
+      message.interactive?.list_reply?.title?.toLowerCase().trim();
+
+    // 1. Opción del menú principal
+    if (["opcion_1", "opcion_2", "opcion_3"].includes(optionId)) {
+      return await this.handleMenuOption(userId, optionTitle);
+    }
+
+    // 2. Opciones de retroalimentación
+    if (["si, gracias", "otra pregunta", "hablar con soporte"].includes(optionTitle)) {
+      return await this.handleFeedbackButtons(userId, optionTitle);
+    }
+
+    // 3. Acciones del carrito
+    if (["seguir_comprando", "ver_carrito", "finalizar_compra"].includes(optionId)) {
+      switch (optionId) {
+        case 'seguir_comprando':
+          return await this.handleSeguirComprando(userId);
+        case 'ver_carrito':
+          return await this.handleVerCarrito(userId, estado);
+        case 'finalizar_compra':
+          return await this.handleFinalizarCompra(userId, estado);
+      }
+    }
+
+    if (optionId?.startsWith("eliminar_")) {
+      return await this.handleEliminarProducto(userId, optionId, estado);
+    }
+
+    // 4. Selección de producto desde catálogo
     if (estado?.estado === 'carrito' && estado?.subestado === 'seleccionando_producto') {
-      const optionId = message.interactive?.button_reply?.id || message.interactive?.list_reply?.id;
-      const optionTitle = message.interactive?.button_reply?.title?.toLowerCase().trim() ||
-        message.interactive?.list_reply?.title?.toLowerCase().trim();
+      return await this.handleProductoSeleccionado(userId, optionId, optionTitle, estado);
+    }
 
-      // Acción especial: seguir comprando
-      if (optionId === 'seguir_comprando') {
-        await whatsappService.sendListMessage(userId, {
-          header: "🛒 Productos disponibles",
-          body: "Selecciona un producto para agregarlo al carrito, recuerda que viene x12 Unidades.",
-          footer: "Puedes agregar varios productos antes de pagar.",
-          buttonText: "Ver productos",
-          sections: [
-            {
-              title: "Catálogo NATIF",
-              rows: productos.map(p => ({
-                id: p.id,
-                title: p.nombre.slice(0, 24),
-                description: p.descripcion?.slice(0, 40) || ''
-              }))
-            }
-          ]
-        });
-        return;
-      }
+    // 5. Cualquier otra opción
+    return await this.handleMenuOption(userId, optionTitle);
+  }
+  // selecion producto
+  async handleProductoSeleccionado(userId, optionId, optionTitle, estado) {
+    const productoElegido = productos.find(p =>
+      p.id === optionId || p.nombre.toLowerCase().trim() === optionTitle
+    );
 
-      // Acción especial: ver carrito
-      if (optionId === 'ver_carrito') {
-        if (!estado?.carrito || estado.carrito.length === 0) {
-          await whatsappService.sendMessage(userId, "Tu carrito está vacío 🛒");
-          return;
-        }
-
-        const resumen = estado.carrito.map((item, i) =>
-          `*${i + 1}.* ${item.nombre} (x${item.cantidad})`
-        ).join('\n');
-
-        function generarBotonesUnicos(carrito) {
-          const usados = new Set();
-          return carrito.map((item, i) => {
-            let base = `Quitar ${item.nombre}`.trim();
-            let titulo = base.slice(0, 20);
-
-            // Evita títulos duplicados
-            let count = 1;
-            while (usados.has(titulo)) {
-              const suffix = ` ${count++}`;
-              titulo = `${base.slice(0, 20 - suffix.length)}${suffix}`;
-            }
-            usados.add(titulo);
-
-            return {
-              type: 'reply',
-              reply: {
-                id: `eliminar_${i}`,
-                title: titulo
-              }
-            };
-          });
-        }
-
-
-        const botonesEliminar = generarBotonesUnicos(estado.carrito);
-
-
-        await whatsappService.sendMessage(userId, `🧾 Aquí está tu carrito:\n${resumen}`);
-        const carrito = estado.carrito || [];
-
-        await whatsappService.sendListMessage(userId, {
-          header: "🗑 Productos en tu carrito",
-          body: "Selecciona el producto que deseas eliminar",
-          footer: "Solo puedes quitar uno a la vez (por ahora)",
-          buttonText: "Eliminar producto",
-          sections: [
-            {
-              title: "Eliminar del carrito",
-              rows: carrito.map((item, i) => ({
-                id: `eliminar_${i}`,
-                title: limitarTitulo(item.nombre, 24),
-                description: `Cantidad: ${item.cantidad || 1}`
-              }))
-            }
-          ]
-        });
-
-        return;
-      }
-
-      // Eliminar producto del carrito
-      if (optionId?.startsWith('eliminar_')) {
-        const index = Number(optionId.split('_')[1]);
-        let carrito = estado.carrito || [];
-
-        if (!isNaN(index) && carrito[index]) {
-          const eliminado = carrito.splice(index, 1)[0];
-          await whatsappService.sendMessage(userId, `🗑️ Producto eliminado: *${eliminado.nombre}*`);
-          await stateStore.set(userId, { ...estado, step: 'seleccionando_producto', carrito }); // <- Persistencia real aquí
-        } else {
-          await whatsappService.sendMessage(userId, "No pude identificar el producto a eliminar. Intenta nuevamente.");
-        }
-
-        // Reconsultamos el estado actualizado
-        const nuevoEstado = await stateStore.get(userId);
-        const nuevoCarrito = nuevoEstado.carrito || [];
-
-        if (nuevoCarrito.length === 0) {
-          await whatsappService.sendMessage(userId, "Tu carrito ahora está vacío 🛒");
-          return await this.sendPostCarritoOptions(userId);
-        }
-
-        const resumen = nuevoCarrito.map((item, i) =>
-          `*${i + 1}.* ${item.nombre} (x${item.cantidad})`
-        ).join('\n');
-
-        await whatsappService.sendMessage(userId, `🧾 Carrito actualizado:\n${resumen}`);
-        return await this.sendPostCarritoOptions(userId);
-      }
-
-
-      // Finalizar compra
-      if (optionId === 'finalizar_compra') {
-        const carrito = estado?.carrito || [];
-
-        if (carrito.length === 0) {
-          await whatsappService.sendMessage(userId, "Tu carrito está vacío 🛒");
-          return;
-        }
-
-        const resumen = carrito.map((item, i) =>
-          `*${i + 1}.* ${item.nombre} (x${item.cantidad})`
-        ).join('\n');
-
-        await whatsappService.sendMessage(userId, `🧾 Tu carrito:\n${resumen}`);
-        const link = generarLinkCarritoMultiple(carrito);
-        await whatsappService.sendMessage(userId, `🛒 ¡Listo! Aquí tienes tu link para finalizar la compra:\n${link}`);
-
-
-        await this.sendWelcomeMenu(userId);
-        // await stateStore.set(userId, { estado: 'inicio', subestado: 'menu_principal' });
-        return;
-      }
-
-      // Si eligió un producto del catálogo
-      const productoElegido = productos.find(p =>
-        p.id === optionId || p.nombre.toLowerCase().trim() === optionTitle
-      );
-
-      if (!productoElegido) {
-        await whatsappService.sendMessage(userId, "Producto no reconocido. Intenta nuevamente.");
-        return;
-      }
-
-      const carrito = estado.carrito || [];
-      carrito.push({ variantId: productoElegido.variantId, nombre: productoElegido.nombre, cantidad: 1 });
-
-      await stateStore.set(userId, { estado: 'carrito', subestado: 'seleccionando_producto', carrito });
-
-      const resumen = carrito.map((item, i) =>
-        `*${i + 1}.* ${item.nombre} (x${item.cantidad})`
-      ).join('\n');
-
-      await whatsappService.sendMessage(userId, `🧾 Productos en tu carrito:\n${resumen}`);
-
-      await whatsappService.sendInteractiveButtons(userId, "¿Qué deseas hacer ahora?", [
-        { type: 'reply', reply: { id: 'seguir_comprando', title: "AGREGAR PRODUCTO" } },
-        { type: 'reply', reply: { id: 'ver_carrito', title: "VER CARRITO" } },
-        { type: 'reply', reply: { id: 'finalizar_compra', title: "LINK DE PAGO" } }
-      ]);
+    if (!productoElegido) {
+      await whatsappService.sendMessage(userId, "Producto no reconocido. Intenta nuevamente.");
       return;
     }
 
-    if (["si, gracias", "otra pregunta", "hablar con soporte"].includes(option)) {
-      await this.handleFeedbackButtons(userId, option);
-    } else {
-      await this.handleMenuOption(userId, option);
-    }
-  }
+    const carrito = estado.carrito || [];
+    const existente = carrito.find(item => item.variantId === productoElegido.variantId);
 
+    if (existente) {
+      existente.cantidad += 1;
+    } else {
+      carrito.push({
+        variantId: productoElegido.variantId,
+        nombre: productoElegido.nombre,
+        cantidad: 1
+      });
+    }
+
+    await stateStore.set(userId, {
+      estado: 'carrito',
+      subestado: 'seleccionando_producto',
+      carrito
+    });
+
+    const resumen = this.formatearResumenCarrito(carrito);
+    await whatsappService.sendMessage(userId, `🧾 Productos en tu carrito:\n${resumen}`);
+
+    return await this.sendPostCarritoOptions(userId);
+  }
+  // resumen carrito
+  formatearResumenCarrito(carrito) {
+    return carrito.map((item, i) =>
+      `*${i + 1}.* ${item.nombre} (x${item.cantidad})`
+    ).join('\n');
+  }
+  // seguir comprando
+  async handleSeguirComprando(userId) {
+    await whatsappService.sendListMessage(userId, {
+      header: "🛒 Productos disponibles",
+      body: "Selecciona un producto para agregarlo al carrito, recuerda que viene x12 Unidades.",
+      footer: "Puedes agregar varios productos antes de pagar.",
+      buttonText: "Ver productos",
+      sections: [
+        {
+          title: "Catálogo NATIF",
+          rows: productos.map(p => ({
+            id: p.id,
+            title: p.nombre.slice(0, 24),
+            description: p.descripcion?.slice(0, 40) || ''
+          }))
+        }
+      ]
+    });
+  }
+  // ver carrito
+  async handleVerCarrito(userId, estado) {
+    const carrito = estado?.carrito || [];
+
+    if (carrito.length === 0) {
+      await whatsappService.sendMessage(userId, "Tu carrito está vacío 🛒");
+      return;
+    }
+
+    const resumen = this.formatearResumenCarrito(carrito);
+
+    await whatsappService.sendMessage(userId, `🧾 Aquí está tu carrito:\n${resumen}`);
+
+    await whatsappService.sendListMessage(userId, {
+      header: "🗑 Productos en tu carrito",
+      body: "Selecciona el producto que deseas eliminar",
+      footer: "Solo puedes quitar uno a la vez (por ahora)",
+      buttonText: "Eliminar producto",
+      sections: [
+        {
+          title: "Eliminar del carrito",
+          rows: carrito.map((item, i) => ({
+            id: `eliminar_${i}`,
+            title: limitarTitulo(item.nombre, 24),
+            description: `Cantidad: ${item.cantidad || 1}`
+          }))
+        }
+      ]
+    });
+  }
+  //finalizar compra 
+  async handleFinalizarCompra(userId, estado) {
+    const carrito = estado?.carrito || [];
+
+    if (carrito.length === 0) {
+      await whatsappService.sendMessage(userId, "Tu carrito está vacío 🛒");
+      return;
+    }
+
+    const resumen = this.formatearResumenCarrito(carrito);
+
+    await whatsappService.sendMessage(userId, `🧾 Tu carrito:\n${resumen}`);
+    const link = generarLinkCarritoMultiple(carrito);
+    await whatsappService.sendMessage(userId, `🛒 ¡Listo! Aquí tienes tu link para finalizar la compra:\n${link}`);
+
+    await this.sendWelcomeMenu(userId);
+  }
+  // eleimar producto
+  async handleEliminarProducto(userId, optionId, estado) {
+    const index = Number(optionId.split('_')[1]);
+    let carrito = estado.carrito || [];
+
+    if (!isNaN(index) && carrito[index]) {
+      const eliminado = carrito.splice(index, 1)[0];
+      await whatsappService.sendMessage(userId, `🗑️ Producto eliminado: *${eliminado.nombre}*`);
+      await stateStore.set(userId, { ...estado, step: 'seleccionando_producto', carrito });
+    } else {
+      await whatsappService.sendMessage(userId, "No pude identificar el producto a eliminar. Intenta nuevamente.");
+      return;
+    }
+
+    const nuevoCarrito = carrito;
+
+    if (nuevoCarrito.length === 0) {
+      await whatsappService.sendMessage(userId, "Tu carrito ahora está vacío 🛒");
+      return await this.sendPostCarritoOptions(userId);
+    }
+
+    const resumen = this.formatearResumenCarrito(nuevoCarrito);
+    await whatsappService.sendMessage(userId, `🧾 Carrito actualizado:\n${resumen}`);
+    return await this.sendPostCarritoOptions(userId);
+  }
+  // opciones de carrito
   async sendPostCarritoOptions(userId) {
     await whatsappService.sendInteractiveButtons(userId, "¿Qué deseas hacer ahora?", [
       { type: 'reply', reply: { id: 'seguir_comprando', title: "AGREGAR PRODUCTO" } },
@@ -369,10 +383,20 @@ Número de guía: *${resultado.tracking}*
       }
 
       const flujo = Object.values(flujosConversacionales).find(f => f.intencion === intencion);
+      if (flujo?.intencion === 'factura') {
+        await stateStore.set(userId, {
+          estado: 'factura',
+          subestado: 'factura_electronica'
+        });
+        await whatsappService.sendMessage(userId, flujo.pregunta);
+        return;
+      }
+
       if (flujo) {
         await this.ejecutarFlujoConversacional(userId, flujo);
         return;
       }
+
 
 
       const respuestaLocal = await buscarEnDocumentoLocal(message);
@@ -554,7 +578,71 @@ Número de guía: *${resultado.tracking}*
       { type: 'reply', reply: { id: 'opcion_2', title: 'COMPRAR PRODUCTO' } },
       { type: 'reply', reply: { id: 'opcion_3', title: 'IA NATIF' } }
     ];
-    await whatsappService.sendInteractiveButtons(to, "¿Cómo puedo ayudarte el día de hoy?", buttons);
+    await whatsappService.sendInteractiveButtons(to, "¿Cómo más puedo ayudarte el dia de hoy?", buttons);
+  }
+
+  async factura(userId, messageText, estado) {
+    const flujo = flujosConversacionales['flujo_4'];
+    const step = estado.subestado;
+    const texto = messageText.trim();
+
+    if (step === 'factura_electronica') {
+      const pedido = await buscarPedidoPorNumero(texto);
+
+      if (!pedido) {
+        await whatsappService.sendMessage(userId, "⚠️ No encontramos ese número de pedido. Asegúrate de escribirlo correctamente, como por ejemplo: #3075.");
+        return;
+      }
+
+      await whatsappService.sendMessage(userId, `✅ Pedido encontrado:\n*Pedido:* ${pedido.pedido}\n*Cliente:* ${pedido.cliente}\n*Productos:* ${pedido.productos.join(', ')}`);
+      await whatsappService.sendMessage(userId, "Para emitir la factura necesito algunos datos adicionales. Vamos uno por uno 😊");
+
+      const siguienteCampo = flujo.datos_requeridos[0];
+      await whatsappService.sendMessage(userId,
+        `Para emitir la factura, por favor indícame los siguientes datos separados por comas (en ese orden):\n\n` +
+        `*1.* Nombre / Razón social\n` +
+        `*2.* NIT o Cédula\n` +
+        `*3.* Dirección\n` +
+        `*4.* Ciudad\n` +
+        `*5.* Correo\n\n` +
+        `Ejemplo:\nNATIF S.A.S, 900123456, Calle 123 #45-67, Bogotá, facturas@natif.com`
+      );
+
+      await stateStore.set(userId, {
+        estado: 'factura',
+        subestado: 'esperando_datos_factura',
+        datos_factura: {
+          pedido: texto,
+          cliente: pedido.cliente,
+          productos: pedido.productos
+        }
+      });
+
+      return; // 🔁 Cortamos aquí porque el resto de datos aún no han sido enviados
+    }
+
+    if (step === 'esperando_datos_factura') {
+      const partes = texto.split(',').map(p => p.trim());
+      const [razon, nit, direccion, ciudad, correo] = partes;
+
+      const datosFactura = {
+        ...estado.datos_factura,
+        "Nombre / Razón social": razon,
+        "NIT o Cédula": nit,
+        "Dirección": direccion,
+        "Ciudad": ciudad,
+        "Correo": correo
+      };
+
+      // ✅ Guardar en Sheets ahora que tenemos todo
+      await guardarFacturaEnSheet(datosFactura);
+
+      // Confirmar al usuario
+      await whatsappService.sendMessage(userId, "✅ ¡Gracias! Tu factura será enviada en un plazo máximo de 48 horas hábiles.");
+      await this.sendWelcomeMenu(userId);
+      await stateStore.set(userId, { estado: 'inicio', subestado: 'menu_principal' });
+
+    }
   }
 
 }

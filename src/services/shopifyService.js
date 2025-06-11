@@ -41,24 +41,38 @@ export async function buscarPedidoPorGuia(trackingNumber) {
     return null;
   }
 }
-export async function buscarPedidoPorNumero(numero) {
+export async function buscarPedidoPorNumero(numeroPedido) {
   try {
-    const res = await axios.get(
-      `https://${SHOPIFY_STORE}.myshopify.com/admin/api/2023-10/orders.json?name=${encodeURIComponent('#' + numero)}`,
-      {
-        headers: {
-          'X-Shopify-Access-Token': ACCESS_TOKEN,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    const limpio = numeroPedido.replace(/[^0-9]/g, ''); // "#3075" → "3075"
+    const nameBuscado = `#${limpio}`;
 
-    const pedido = res.data.orders[0];
-    return pedido;
+    const url = `https://${SHOPIFY_STORE}.myshopify.com/admin/api/2023-10/orders.json?limit=250&status=any`;
+
+    console.log("🔍 Buscando pedido por nombre:", nameBuscado);
+
+    const res = await axios.get(url, {
+      headers: {
+        'X-Shopify-Access-Token': ACCESS_TOKEN,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const pedidos = res.data.orders;
+    const pedido = pedidos.find(p => p.name === nameBuscado);
+
+    if (!pedido) {
+      console.log("❌ Pedido no encontrado:", nameBuscado);
+      return null;
+    }
+
+    return {
+      pedido: pedido.name,
+      cliente: `${pedido.customer?.first_name || ''} ${pedido.customer?.last_name || ''}`.trim(),
+      productos: pedido.line_items.map(item => item.name),
+      correo: pedido.email
+    };
   } catch (err) {
-    console.error('Error consultando orden:', err.response?.data || err.message);
+    console.error('❌ Error consultando orden:', err.response?.data || err.message);
     return null;
   }
 }
-
-

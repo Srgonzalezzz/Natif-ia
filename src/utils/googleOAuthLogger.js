@@ -86,3 +86,37 @@ export async function registrarLog({
     console.error("❌ Error al registrar log:", err.response?.data || err.message);
   }
 }
+
+async function guardarFacturaEnSheet(datosFactura) {
+  try {
+    const auth = await authorize();
+    const sheets = google.sheets({ version: 'v4', auth });
+
+    const fila = [
+      new Date().toLocaleString(),                          // Fecha
+      datosFactura.pedido,
+      datosFactura.cliente,
+      datosFactura["Nombre / Razón social"],
+      datosFactura["NIT o Cédula"],
+      datosFactura["Dirección"],
+      datosFactura["Ciudad"],
+      datosFactura["Correo"],
+      datosFactura.productos?.join(', ') || ''             // Lista de productos
+    ];
+
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: SPREADSHEET_ID, // Usa el mismo ID
+      range: 'Facturas!A1', // Asegúrate que la hoja se llame 'Facturas'
+      valueInputOption: 'USER_ENTERED',
+      requestBody: { values: [fila] }
+    });
+
+    console.log("✅ Factura registrada en hoja 'Facturas'");
+  } catch (error) {
+    console.error("❌ Error guardando datos de factura:", error.response?.data || error.message);
+  }
+}
+export { guardarFacturaEnSheet };
+
+
+
