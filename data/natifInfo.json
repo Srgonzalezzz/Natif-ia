@@ -33,13 +33,7 @@
       }
     ]
   },
-  {
-    "clave": "puntos_de_venta",
-    "contenido": [
-      "tipo",
-      "texto"
-    ]
-  },
+
   {
     "clave": "quienes son",
     "contenido": [

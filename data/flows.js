@@ -59,15 +59,7 @@ const flujos = {
     pregunta: "¿Qué deseas saber?",
     opciones: ["¿Qué es la alulosa?", "¿Es sin azúcar?", "¿Tiene gluten o lactosa?", "¿Apto para diabéticos?"]
   },
-  flujo_8: {
-    intencion: "reclamo",
-    keywords: ["queja", "reclamo", "sugerencia", "inconformidad"],
-    nombre: "Quejas, reclamos y sugerencias",
-    step: "quejas_reclamos",
-    pregunta: "¿Quieres dejar una queja, reclamo o sugerencia?",
-    opciones: ["Queja", "Reclamo", "Sugerencia"],
-    respuesta_final: "Tu mensaje ha sido recibido y será atendido en máximo 48 horas hábiles."
-  },
+
   flujo_9: {
     intencion: "resena",
     keywords: ["reseña", "calificación", "opinión", "experiencia"],
@@ -88,6 +80,10 @@ const flujos = {
     campos_influencer: ["Red social", "Ciudad", "Tipo de contenido", "Seguidores"],
     campos_distribuidor: ["Nombre del negocio", "Ciudad", "Tipo de punto de venta", "Email"],
     respuesta_final: "Gracias por tu interés. Tu propuesta será evaluada por nuestro equipo."
+  },
+  flujo_puntos_venta: {
+    nombre: 'Puntos de venta físicos',
+    intencion: 'puntos_venta',
   }
 };
 

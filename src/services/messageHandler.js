@@ -94,7 +94,6 @@ class MessageHandler {
           return;
         }
 
-        // 👇 AGREGAR ESTE CÓDIGO AL FINAL, para controlar el cierre
         if (estado.estado === 'inicio' && estado.subestado === 'menu_principal') {
           await whatsappService.sendMessage(userId, "💬 ¿Mi respuesta fue de ayuda?");
         }
