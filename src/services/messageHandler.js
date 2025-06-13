@@ -15,13 +15,11 @@ import { limitarTitulo } from '../utils/whatsappUtils.js';
 import { buscarPedidoPorNumero } from './shopifyService.js';
 import { guardarFacturaEnSheet } from '../utils/googleOAuthLogger.js';
 
-
-
 class MessageHandler {
-  // INTERPRETACION DE MENSAJE 
+  // Verifica que el mensaje sea válido, Detecta si es texto o interacción,
+  // Llama al handler apropiado, Marca el mensaje como leído, Maneja errores con seguridad.
   async handleIncomingMessage(message, senderInfo) {
     if (!message) return;
-
 
     try {
       const userId = message.from;
@@ -38,22 +36,29 @@ class MessageHandler {
     }
   }
 
-  // CIERRE DE CHAT
+  // Limpia temporizadores, Envía una despedida al usuario, Elimina todo el estado del chat.
   async cerrarChat(userId) {
     await this.clearUserTimers(userId);
     await whatsappService.sendMessage(userId, "✨ ¡Gracias por confiar en nosotros! Si vuelves a necesitar ayuda, solo escríbeme por este mismo chat 💬. ¡Que tengas un excelente día! 🙌");
     await stateStore.delete(userId);
   }
 
-  // ACCION DE INTERACION DE MENU Y MAS
+  //Guarda el mensaje en el historial, Detecta saludos o despedidas, Ejecuta flujos activos (seguimiento, factura, IA), 
+  // Clasifica intenciones nuevas, Muestra el menú si no se detecta una intención válida.
   async handleTextMessage(text, userId, senderInfo) {
     const incomingMessage = text.toLowerCase().trim();
 
-    const estado = await stateStore.get(userId) || { estado: 'inicio', subestado: 'menu_principal' };
+    let estado = await stateStore.get(userId);
+    if (!esEstadoVigente(estado)) {
+      estado = { estado: 'inicio', subestado: 'menu_principal', historial: [] };
+    }
     const historial = estado?.historial || [];
 
     historial.push({ tipo: 'usuario', texto: incomingMessage, timestamp: new Date().toISOString() });
-    await stateStore.set(userId, { ...estado, historial });
+    await stateStore.set(userId, {
+      ...estado, historial, ultimaActualizacion: Date.now()
+    });
+
 
     if (closingExpressions.some(exp => incomingMessage.includes(exp))) {
       return await this.cerrarChat(userId);
@@ -89,7 +94,9 @@ class MessageHandler {
         const flujo = Object.values(flujosConversacionales).find(f => f.intencion === intencion);
 
         if (flujo?.intencion === 'factura') {
-          await stateStore.set(userId, { estado: 'factura', subestado: 'factura_electronica' });
+          await stateStore.set(userId, {
+            estado: 'factura', subestado: 'factura_electronica', ultimaActualizacion: Date.now()
+          });
           await whatsappService.sendMessage(userId, 'Claro, indícanos tu número de pedido para emitir tu factura electrónica 🧾');
           return;
         }
@@ -106,13 +113,16 @@ class MessageHandler {
         // Si no se detectó ninguna intención válida, mostrar menú
         await this.sendWelcomeMessage(userId, senderInfo);
         await this.sendWelcomeMenu(userId);
-        await stateStore.set(userId, { estado: 'inicio', subestado: 'menu_principal' });
+        await stateStore.set(userId, {
+          estado: 'inicio', subestado: 'menu_principal', ultimaActualizacion: Date.now()
+        });
       }
 
     }
   }
 
-  // CONSULTA DE PEDIDO
+  // Verifica si el número de guía ingresado es válido, Consulta si hay un pedido asociado, 
+  // Devuelve detalles del pedido o un mensaje de error, Restaura el estado y ofrece el menú nuevamente.
   async handleTrackingQuery(trackingRaw, userId) {
     const trackingNumber = trackingRaw.replace(/\s/g, '').toUpperCase();
     if (!/^[A-Z0-9]{8,20}$/.test(trackingNumber)) {
@@ -123,23 +133,27 @@ class MessageHandler {
     if (resultado) {
       const respuesta = `📦 Tu pedido *${resultado.pedido}* está *${resultado.estado || 'sin actualizar'}* con *${resultado.empresa_envio || 'transportadora no especificada'}*.
 
-Número de guía: *${resultado.tracking}*
-🔗 Rastreo: ${resultado.link || 'No disponible'}
-💼 Productos: ${resultado.productos.join(', ')}
-📧 Cliente: ${resultado.cliente}`;
+  Número de guía: *${resultado.tracking}*
+  🔗 Rastreo: ${resultado.link || 'No disponible'}
+  💼 Productos: ${resultado.productos.join(', ')}
+  📧 Cliente: ${resultado.cliente}`;
       await whatsappService.sendMessage(userId, respuesta);
     } else {
       await whatsappService.sendMessage(userId, "No encontré ningún pedido con ese número de guía 😔. Por favor verifica que esté correcto.");
     }
 
-    await stateStore.set(userId, { step: 'esperando_interaccion' });
+    await stateStore.set(userId, {
+      step: 'esperando_interaccion', ultimaActualizacion: Date.now()
+    });
     setTimeout(async () => {
       await whatsappService.sendMessage(userId, "¿Deseas hacer otra consulta o recibir más ayuda? Aquí tienes el menú nuevamente:");
       await this.sendWelcomeMenu(userId);
     }, 1500);
   }
 
-  // INTERACCIONES de mensajes
+  // Responde a clics del usuario en botones o listas, Llama a funciones específicas dependiendo 
+  // del contexto del flujo activo: Menú principal, Feedback ,Compra y carrito Catálogo de productos, 
+  // Eliminación de productos, Sirve como nodo de control para interacciones no textuales en la experiencia conversacional.
   async handleInteractiveMessage(message) {
     const userId = message.from;
     const estado = await stateStore.get(userId);
@@ -182,7 +196,10 @@ Número de guía: *${resultado.tracking}*
     // 5. Cualquier otra opción
     return await this.handleMenuOption(userId, optionTitle);
   }
-  // selecion producto
+
+  // Valida y reconoce el producto seleccionado, Lo agrega o actualiza en el carrito del usuario,
+  // Guarda el estado actualizado con persistencia, Muestra un resumen del carrito,
+  // Ofrece opciones para seguir el flujo de compra.
   async handleProductoSeleccionado(userId, optionId, optionTitle, estado) {
     const productoElegido = productos.find(p =>
       p.id === optionId || p.nombre.toLowerCase().trim() === optionTitle
@@ -209,7 +226,9 @@ Número de guía: *${resultado.tracking}*
     await stateStore.set(userId, {
       estado: 'carrito',
       subestado: 'seleccionando_producto',
-      carrito
+      carrito,
+      ultimaActualizacion: Date.now()
+
     });
 
     const resumen = this.formatearResumenCarrito(carrito);
@@ -217,13 +236,16 @@ Número de guía: *${resultado.tracking}*
 
     return await this.sendPostCarritoOptions(userId);
   }
-  // resumen carrito
+
+  // Convierte el contenido del carrito en un texto ordenado y entendible,
+  // Muestra el nombre y la cantidad de cada producto.
   formatearResumenCarrito(carrito) {
     return carrito.map((item, i) =>
       `*${i + 1}.* ${item.nombre} (x${item.cantidad})`
     ).join('\n');
   }
-  // seguir comprando
+
+  // Muestra un catálogo interactivo al usuario, Permite seleccionar productos fácilmente desde WhatsApp.
   async handleSeguirComprando(userId) {
     await whatsappService.sendListMessage(userId, {
       header: "🛒 Productos disponibles",
@@ -242,7 +264,8 @@ Número de guía: *${resultado.tracking}*
       ]
     });
   }
-  // ver carrito
+
+  // Verifica si hay productos en el carrito, Muestra un resumen del contenido del carrito.
   async handleVerCarrito(userId, estado) {
     const carrito = estado?.carrito || [];
 
@@ -272,7 +295,9 @@ Número de guía: *${resultado.tracking}*
       ]
     });
   }
-  //finalizar compra 
+
+  // Verifica que el carrito no esté vacío, Muestra al usuario el contenido de su compra,
+  // Genera un link dinámico a Shopify con todos los productos.
   async handleFinalizarCompra(userId, estado) {
     const carrito = estado?.carrito || [];
 
@@ -289,6 +314,7 @@ Número de guía: *${resultado.tracking}*
 
     await this.sendWelcomeMenu(userId);
   }
+
   // eleimar producto
   async handleEliminarProducto(userId, optionId, estado) {
     const index = Number(optionId.split('_')[1]);
@@ -297,7 +323,9 @@ Número de guía: *${resultado.tracking}*
     if (!isNaN(index) && carrito[index]) {
       const eliminado = carrito.splice(index, 1)[0];
       await whatsappService.sendMessage(userId, `🗑️ Producto eliminado: *${eliminado.nombre}*`);
-      await stateStore.set(userId, { ...estado, step: 'seleccionando_producto', carrito });
+      await stateStore.set(userId, {
+        ...estado, step: 'seleccionando_producto', carrito, ultimaActualizacion: Date.now()
+      });
     } else {
       await whatsappService.sendMessage(userId, "No pude identificar el producto a eliminar. Intenta nuevamente.");
       return;
@@ -314,6 +342,7 @@ Número de guía: *${resultado.tracking}*
     await whatsappService.sendMessage(userId, `🧾 Carrito actualizado:\n${resumen}`);
     return await this.sendPostCarritoOptions(userId);
   }
+
   // opciones de carrito
   async sendPostCarritoOptions(userId) {
     await whatsappService.sendInteractiveButtons(userId, "¿Qué deseas hacer ahora?", [
@@ -329,7 +358,9 @@ Número de guía: *${resultado.tracking}*
     let response = '';
 
     if (lowerOpt.includes('consultar')) {
-      await stateStore.set(userId, { estado: 'seguimiento', subestado: 'esperando_guia' });
+      await stateStore.set(userId, {
+        estado: 'seguimiento', subestado: 'esperando_guia', ultimaActualizacion: Date.now()
+      });
       response = 'Por favor, envíame tu número de guía para rastrear tu pedido 📦';
     } // Cuando se selecciona desde el menú "Comprar producto"
     else if (lowerOpt.includes('comprar')) {
@@ -354,11 +385,16 @@ Número de guía: *${resultado.tracking}*
           }
         ]
       });
-      await stateStore.set(userId, { estado: 'carrito', subestado: 'seleccionando_producto', carrito: [] });
+      await stateStore.set(userId, {
+        ultimaActualizacion: Date.now()
+        , estado: 'carrito', subestado: 'seleccionando_producto', carrito: []
+      });
 
 
     } else if (lowerOpt.includes('ia natif')) {
-      await stateStore.set(userId, { estado: 'ia', subestado: 'esperando_pregunta' });
+      await stateStore.set(userId, {
+        estado: 'ia', subestado: 'esperando_pregunta', ultimaActualizacion: Date.now()
+      });
       this.setInactivityTimers(userId);
       response = 'Genial! Soy la IA NATIF y estoy aquí para ayudarte 🤖';
     } else {
@@ -368,7 +404,9 @@ Número de guía: *${resultado.tracking}*
     await whatsappService.sendMessage(userId, response);
   }
 
-  // CONSULTA LOCAL O IA, detecion de flujo o
+  // Clasifica la intención del mensaje recibido, Ejecuta flujos si existen (como factura o reclamos).
+  // Si no hay flujo: Busca respuesta en documentos locales. O genera una respuesta con Gemini (IA).
+  // Guarda la respuesta, actualiza historial y logs, Cierra el chat si aplica, y reinicia timers.
   async handleAssistantFlow(userId, message, senderInfo) {
     try {
       const state = await stateStore.get(userId);
@@ -385,7 +423,9 @@ Número de guía: *${resultado.tracking}*
       if (flujo?.intencion === 'factura') {
         await stateStore.set(userId, {
           estado: 'factura',
-          subestado: 'factura_electronica'
+          subestado: 'factura_electronica',
+          ultimaActualizacion: Date.now()
+
         });
         await whatsappService.sendMessage(userId, flujo.pregunta);
         return;
@@ -409,7 +449,9 @@ Número de guía: *${resultado.tracking}*
       const historial = actualizado?.historial || [];
       historial.push({ tipo: 'bot', texto: respuesta, timestamp: new Date().toISOString() });
 
-      await stateStore.set(userId, { ...actualizado, historial });
+      await stateStore.set(userId, {
+        ...actualizado, historial, ultimaActualizacion: Date.now()
+      });
 
 
       await registrarLog({
@@ -428,7 +470,8 @@ Número de guía: *${resultado.tracking}*
     }
   }
 
-  // POR DEFINIR 
+  // Inicia un flujo personalizado con nombre y pregunta inicial, Muestra botones si el flujo tiene opciones
+  // definidas. Guarda el contexto del flujo en stateStore para continuar después.
   async ejecutarFlujoConversacional(userId, flujo) {
     await whatsappService.sendMessage(userId, `📝 *${flujo.nombre}*`);
     await whatsappService.sendMessage(userId, flujo.pregunta);
@@ -447,23 +490,25 @@ Número de guía: *${resultado.tracking}*
     await stateStore.set(userId, {
       estado: 'flujo',
       subestado: flujo.step,
-      flujo_actual: flujo
+      flujo_actual: flujo,
+      ultimaActualizacion: Date.now()
+
     });
   }
 
   // MENSAJE HACIA SOPORTE HUMANO
   async redirigirASoporte(userId, mensaje, senderInfo) {
-    const numeroSupervisor = '573006888304'; // Número de asesor que recibirá el reclamo
+    const estado = await stateStore.get(userId);
+    const numeroSupervisor = '573006888304';
     const nombreCliente = senderInfo?.profile?.name || 'Cliente sin nombre';
 
-    // Datos para plantilla de WhatsApp
     const plantilla = {
-      name: 'reclamo_detectado',       // Debes tener esta plantilla aprobada en WhatsApp Business
+      name: 'reclamo_detectado',
       languageCode: 'es',
       parameters: [
-        { type: 'text', text: nombreCliente }, // {{1}} Nombre
-        { type: 'text', text: mensaje },       // {{2}} Reclamo
-        { type: 'text', text: userId }         // {{3}} WhatsApp del cliente
+        { type: 'text', text: nombreCliente },
+        { type: 'text', text: mensaje },
+        { type: 'text', text: userId }
       ]
     };
 
@@ -473,27 +518,16 @@ Número de guía: *${resultado.tracking}*
         plantilla.name,
         plantilla.languageCode,
         [
-          {
-            type: 'body',
-            parameters: plantilla.parameters
-          }
+          { type: 'body', parameters: plantilla.parameters }
         ]
       );
 
-      if (estado?.flujo_actual) {
-        const flujo = estado.flujo_actual;
+      // Mensaje extra como respaldo para el asesor
+      await whatsappService.sendMessage(
+        numeroSupervisor,
+        `📢 Reclamo recibido:\n\n👤 Cliente: *${nombreCliente}*\n📞 WhatsApp: ${userId}\n✉️ Reclamo: ${mensaje}`
+      );
 
-        if (flujo.intencion === 'devolucion') {
-          if (option === 'sí') {
-            await whatsappService.sendMessage(userId, flujo.respuesta_si);
-          } else if (option === 'no') {
-            await whatsappService.sendMessage(userId, flujo.respuesta_no);
-          }
-          await stateStore.set(userId, { step: 'esperando_interaccion' });
-          await this.sendWelcomeMenu(userId);
-          return;
-        }
-      }
       await whatsappService.sendMessage(userId, "✅ Hemos recibido tu mensaje. Un asesor de NATIF se comunicará contigo muy pronto 🙏");
       await stateStore.delete(userId);
     } catch (error) {
@@ -536,10 +570,14 @@ Número de guía: *${resultado.tracking}*
           await stateStore.delete(userId);
         }, finalDelay);
 
-        await stateStore.set(userId, { ...state, finalClosureTimeout });
+        await stateStore.set(userId, {
+          ...state, finalClosureTimeout, ultimaActualizacion: Date.now()
+        });
       }, warningDelay);
 
-      await stateStore.set(userId, { ...(currentState || {}), timeout });
+      await stateStore.set(userId, {
+        ...(currentState || {}), timeout, ultimaActualizacion: Date.now()
+      });
     };
 
     run();
@@ -553,7 +591,9 @@ Número de guía: *${resultado.tracking}*
         break;
       case 'otra pregunta':
         await whatsappService.sendMessage(userId, '¡Perfecto! Puedes escribirme tu siguiente inquietud.');
-        await stateStore.set(userId, { estado: 'ia', subestado: 'esperando_pregunta' });
+        await stateStore.set(userId, {
+          estado: 'ia', subestado: 'esperando_pregunta', ultimaActualizacion: Date.now()
+        });
         break;
       case 'hablar con soporte':
         await whatsappService.sendMessage(userId, 'Conectándote con nuestro equipo de soporte humano… Un momento por favor 👩‍💻');
@@ -580,6 +620,7 @@ Número de guía: *${resultado.tracking}*
     await whatsappService.sendInteractiveButtons(to, "¿Cómo más puedo ayudarte el dia de hoy?", buttons);
   }
 
+  // PROCESO PARA FACTURA ELECTRONICA
   async factura(userId, messageText, estado) {
     const flujo = flujosConversacionales['flujo_4'];
     const step = estado.subestado;
@@ -613,7 +654,9 @@ Número de guía: *${resultado.tracking}*
         datos_factura: {
           pedido: texto,
           cliente: pedido.cliente,
-          productos: pedido.productos
+          productos: pedido.productos,
+          ultimaActualizacion: Date.now()
+
         }
       });
 
@@ -639,12 +682,23 @@ Número de guía: *${resultado.tracking}*
       // Confirmar al usuario
       await whatsappService.sendMessage(userId, "✅ ¡Gracias! Tu factura será enviada en un plazo máximo de 48 horas hábiles.");
       await this.sendWelcomeMenu(userId);
-      await stateStore.set(userId, { estado: 'inicio', subestado: 'menu_principal' });
+      await stateStore.set(userId, {
+        estado: 'inicio', subestado: 'menu_principal', ultimaActualizacion: Date.now()
+      });
 
     }
   }
 
 }
+// Revisa si un estado de conversación está dentro de un rango de validez temporal (24 horas).
+// Ayuda a decidir si el bot debe continuar un flujo anterior o iniciar uno nuevo.
+function esEstadoVigente(estado) {
+  if (!estado?.ultimaActualizacion) return false;
+  const ahora = Date.now();
+  const hace24h = 24 * 60 * 60 * 1000;
+  return (ahora - estado.ultimaActualizacion) <= hace24h;
+}
+
 
 
 export default new MessageHandler();
