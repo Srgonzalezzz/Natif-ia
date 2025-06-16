@@ -6,7 +6,7 @@ import { greetings, closingExpressions } from './constants.js';
 import GeminiService from './geminiService.js';
 import { registrarLog } from '../utils/googleOAuthLogger.js';
 import detectarIntencion from '../utils/intentionClassifier.js';
-import { formatearRespuesta, formatearPorClave } from '../utils/textFormatter.js';
+import { formatearRespuesta, formatearPorClave, encontrarOpcionParecida } from '../utils/textFormatter.js';
 import { buscarPedidoPorGuia } from './shopifyService.js';
 import { productos } from './productCatalog.js';
 import flujosConversacionales from '../../data/flows.js';
@@ -14,6 +14,8 @@ import { generarLinkCarritoMultiple } from './shopifyCartLink.js';
 import { limitarTitulo } from '../utils/whatsappUtils.js';
 import { buscarPedidoPorNumero } from './shopifyService.js';
 import { guardarFacturaEnSheet } from '../utils/googleOAuthLogger.js';
+import flowRouter from '../../data/flowRouter.js';
+
 
 class MessageHandler {
   // Verifica que el mensaje sea válido, Detecta si es texto o interacción,
@@ -88,6 +90,42 @@ class MessageHandler {
         await this.factura(userId, incomingMessage, estado);
         break;
 
+      case 'flujo': {
+        const flujo = estado.flujo_actual;
+        const input = incomingMessage.toLowerCase().trim();
+
+        if (!flujo.opciones || flujo.opciones.length === 0) {
+          await whatsappService.sendMessage(userId, "⚠️ Este flujo no tiene opciones configuradas.");
+          return;
+        }
+
+        // 🔍 Encontrar el índice de la opción que más se parece
+        const index = encontrarOpcionParecida(flujo.opciones, input);
+
+        if (index === -1) {
+          await whatsappService.sendMessage(userId, "❌ Opción no válida. Intenta seleccionar desde el menú.");
+          return;
+        }
+
+        const opcionElegida = flujo.opciones[index];
+        await this.sendSafeMessage(userId, `✅ Has seleccionado: *${opcionElegida}*`);
+
+        if (flowRouter[flujo.step]) {
+          await flowRouter[flujo.step](userId, opcionElegida, whatsappService);
+        } else {
+          await whatsappService.sendMessage(userId, "⚠️ Este flujo aún no está configurado.");
+        }
+
+        await this.sendWelcomeMenu(userId);
+        await stateStore.set(userId, {
+          estado: 'inicio',
+          subestado: 'menu_principal',
+          ultimaActualizacion: Date.now()
+        });
+        return;
+      }
+
+
 
       default: {
         const intencion = detectarIntencion(incomingMessage);
@@ -102,7 +140,7 @@ class MessageHandler {
         }
 
         if (estado.estado === 'inicio' && estado.subestado === 'menu_principal') {
-          await whatsappService.sendMessage(userId, "💬 ¿Mi respuesta fue de ayuda?");
+          await whatsappService.sendMessage(userId);
         }
 
         if (flujo) {
@@ -151,6 +189,14 @@ class MessageHandler {
     }, 1500);
   }
 
+  async sendSafeMessage(userId, texto) {
+    if (!texto || typeof texto !== 'string' || texto.trim() === '') {
+      console.warn(`❗ Se bloqueó envío vacío a ${userId}. Texto original:`, texto);
+      return;
+    }
+    await whatsappService.sendMessage(userId, texto);
+  }
+
   // Responde a clics del usuario en botones o listas, Llama a funciones específicas dependiendo 
   // del contexto del flujo activo: Menú principal, Feedback ,Compra y carrito Catálogo de productos, 
   // Eliminación de productos, Sirve como nodo de control para interacciones no textuales en la experiencia conversacional.
@@ -161,6 +207,42 @@ class MessageHandler {
     const optionId = message.interactive?.button_reply?.id || message.interactive?.list_reply?.id;
     const optionTitle = message.interactive?.button_reply?.title?.toLowerCase().trim() ||
       message.interactive?.list_reply?.title?.toLowerCase().trim();
+
+    if (optionId?.startsWith("flujo_")) {
+      const estado = await stateStore.get(userId);
+      const flujo = estado?.flujo_actual;
+
+      if (!flujo) {
+        await whatsappService.sendMessage(userId, "No tengo contexto del flujo actual. Escribe *menu* para empezar de nuevo.");
+        return;
+      }
+
+      const [_, step, __, index] = optionId.split('_'); // flujo_step_opt_2
+      const opcionElegida = flujo.opciones?.[parseInt(index)];
+
+      if (!opcionElegida || typeof opcionElegida !== 'string') {
+        await whatsappService.sendMessage(userId, "❌ Hubo un problema con tu selección. Intenta nuevamente.");
+        return;
+      }
+
+
+      await this.sendSafeMessage(userId, `✅ Has seleccionado: *${opcionElegida}*`);
+
+      // 🔄 Llama al router
+      if (flowRouter[flujo.step]) {
+        await flowRouter[flujo.step](userId, opcionElegida, whatsappService);
+      } else {
+        await whatsappService.sendMessage(userId, "⚠️ Este flujo aún no está configurado.");
+      }
+
+      // Reinicia estado
+      await this.sendWelcomeMenu(userId);
+      await stateStore.set(userId, {
+        estado: 'inicio',
+        subestado: 'menu_principal',
+        ultimaActualizacion: Date.now()
+      });
+    }
 
     // 1. Opción del menú principal
     if (["opcion_1", "opcion_2", "opcion_3"].includes(optionId)) {
@@ -477,22 +559,45 @@ class MessageHandler {
     await whatsappService.sendMessage(userId, flujo.pregunta);
 
     if (flujo.opciones?.length) {
-      const botones = flujo.opciones.map((opt, idx) => ({
-        type: 'reply',
-        reply: {
+      if (flujo.opciones.length <= 3) {
+        // Usa botones si hay 3 o menos opciones
+        const botones = flujo.opciones.map((opt, idx) => ({
+          type: 'reply',
+          reply: {
+            id: `flujo_${flujo.step}_opt_${idx}`,
+            title: opt
+          }
+        }));
+        await whatsappService.sendInteractiveButtons(userId, "Elige una opción:", botones);
+      } else {
+        // Usa menú interactivo si hay más de 3 opciones
+        const rows = flujo.opciones.map((opt, idx) => ({
           id: `flujo_${flujo.step}_opt_${idx}`,
-          title: opt
-        }
-      }));
-      await whatsappService.sendInteractiveButtons(userId, "Elige una opción:", botones);
+          title: opt.slice(0, 24), // WhatsApp limita a 24 caracteres
+          description: '' // opcional: puedes personalizarlo si lo necesitas
+        }));
+
+        await whatsappService.sendListMessage(userId, {
+          header: `📋 ${flujo.nombre}`,
+          body: flujo.pregunta,
+          footer: "Selecciona una opción para continuar.",
+          buttonText: "Ver opciones",
+          sections: [
+            {
+              title: "Opciones disponibles",
+              rows
+            }
+          ]
+        });
+      }
     }
 
+    // Guarda el estado del flujo
     await stateStore.set(userId, {
       estado: 'flujo',
       subestado: flujo.step,
       flujo_actual: flujo,
       ultimaActualizacion: Date.now()
-
     });
   }
 

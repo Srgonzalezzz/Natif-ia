@@ -64,3 +64,29 @@ export function formatearPorClave(clave, contenido) {
       return contenido;
   }
 }
+
+// utils/textFormatter.js
+export function encontrarOpcionParecida(opciones, input) {
+  if (!Array.isArray(opciones) || !input) return -1;
+
+  const normalizar = (str) =>
+    str
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // elimina tildes
+      .replace(/[^a-z0-9]/gi, '') // elimina signos y espacios
+
+  const inputNorm = normalizar(input);
+
+  for (let i = 0; i < opciones.length; i++) {
+    const opcionNorm = normalizar(opciones[i]);
+    if (inputNorm.includes(opcionNorm) || opcionNorm.includes(inputNorm)) {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+
+
