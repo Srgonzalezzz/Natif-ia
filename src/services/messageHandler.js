@@ -230,7 +230,26 @@ class MessageHandler {
 
       // 🔄 Llama al router
       if (flowRouter[flujo.step]) {
-        await flowRouter[flujo.step](userId, opcionElegida, whatsappService);
+        const resultado = await flowRouter[flujo.step](userId, opcionElegida, whatsappService);
+
+        // Guarda en historial si la respuesta fue válida
+        if (resultado?.tipo === 'texto' && resultado.contenido) {
+          const estadoActual = await stateStore.get(userId);
+          const historial = estadoActual?.historial || [];
+
+          historial.push({
+            tipo: 'bot',
+            texto: resultado.contenido,
+            timestamp: new Date().toISOString()
+          });
+
+          await stateStore.set(userId, {
+            ...estadoActual,
+            historial,
+            ultimaActualizacion: Date.now()
+          });
+        }
+
       } else {
         await whatsappService.sendMessage(userId, "⚠️ Este flujo aún no está configurado.");
       }
@@ -397,7 +416,7 @@ class MessageHandler {
     await this.sendWelcomeMenu(userId);
   }
 
-  // eleimar producto
+  // eliminar producto
   async handleEliminarProducto(userId, optionId, estado) {
     const index = Number(optionId.split('_')[1]);
     let carrito = estado.carrito || [];

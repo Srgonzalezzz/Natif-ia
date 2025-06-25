@@ -18,13 +18,9 @@ const flowRouter = {
         };
 
         const key = normalizar(opcion);
-        console.log(`👉 Opción recibida: '${opcion}' → clave normalizada: '${key}'`);
-
         const respuesta = respuestas[key] || "⚠️ No tengo una respuesta configurada para esa opción.";
-        console.log(`📤 Respuesta final a enviar: '${respuesta}'`);
-
         await whatsappService.sendMessage(userId, respuesta);
-
+        return { tipo: 'texto', contenido: respuesta };
     },
 
     // FLUJO: PEDIDO MAL (Producto equivocado, dañado, incompleto)
@@ -38,6 +34,7 @@ const flowRouter = {
         const key = normalizar(opcion);
         const respuesta = respuestas[key] || "⚠️ No tengo una respuesta configurada para esa opción.";
         await whatsappService.sendMessage(userId, respuesta);
+        return { tipo: 'texto', contenido: respuesta };
     },
 
     // FLUJO: DEVOLUCIÓN
@@ -50,6 +47,7 @@ const flowRouter = {
         const key = normalizar(opcion);
         const respuesta = respuestas[key] || "⚠️ No tengo una respuesta configurada para esa opción.";
         await whatsappService.sendMessage(userId, respuesta);
+        return { tipo: 'texto', contenido: respuesta };
     },
 
     // FLUJO: INGREDIENTES
@@ -64,6 +62,7 @@ const flowRouter = {
         const key = normalizar(opcion);
         const respuesta = respuestas[key] || "⚠️ No tengo una respuesta configurada para esa opción.";
         await whatsappService.sendMessage(userId, respuesta);
+        return { tipo: 'texto', contenido: respuesta };
     },
 
     // FLUJO: COMPRAR (desde el extranjero)
@@ -76,6 +75,7 @@ const flowRouter = {
         const key = normalizar(opcion);
         const respuesta = respuestas[key] || "⚠️ No tengo una respuesta configurada para esa opción.";
         await whatsappService.sendMessage(userId, respuesta);
+        return { tipo: 'texto', contenido: respuesta };
     },
 
     // FLUJO: RESEÑAS Y OPINIONES
@@ -89,6 +89,7 @@ const flowRouter = {
         const key = normalizar(opcion);
         const respuesta = respuestas[key] || "⚠️ No tengo una respuesta configurada para esa opción.";
         await whatsappService.sendMessage(userId, respuesta);
+        return { tipo: 'texto', contenido: respuesta };
     },
 
     // FLUJO: ALIANZAS, INFLUENCERS Y DISTRIBUIDORES
@@ -102,12 +103,14 @@ const flowRouter = {
         const key = normalizar(opcion);
         const respuesta = respuestas[key] || "⚠️ No tengo una respuesta configurada para esa opción.";
         await whatsappService.sendMessage(userId, respuesta);
+        return { tipo: 'texto', contenido: respuesta };
     },
 
     // FLUJO: PUNTOS DE VENTA
     puntos_venta: async (userId, opcion, whatsappService) => {
-        await whatsappService.sendMessage(userId, "📍 ¿En qué ciudad te encuentras? Te compartiré los puntos de venta más cercanos.");
-        // Luego puede usar la lógica conectada a Google Sheets o `natifinfo` como ya tienes planteado
+        const respuesta = "📍 ¿En qué ciudad te encuentras? Te compartiré los puntos de venta más cercanos.";
+        await whatsappService.sendMessage(userId, respuesta);
+        return { tipo: 'texto', contenido: respuesta };
     }
 };
 
