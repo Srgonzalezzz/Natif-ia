@@ -118,5 +118,36 @@ async function guardarFacturaEnSheet(datosFactura) {
 }
 export { guardarFacturaEnSheet };
 
+async function guardarReclamoEnSheet({ fecha, cliente, numero, reclamo }) {
+  try {
+    const auth = await authorize();
+    const sheets = google.sheets({ version: 'v4', auth });
+
+    const numeroLimpio = numero.replace(/[^0-9]/g, '');
+    const linkWhatsapp = `https://wa.me/${numeroLimpio}`;
+
+    const fila = [
+      fecha,
+      cliente,
+      numero,
+      reclamo,
+      linkWhatsapp
+    ];
+
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: SPREADSHEET_ID,
+      range: 'Reclamos!A1',
+      valueInputOption: 'USER_ENTERED',
+      requestBody: { values: [fila] }
+    });
+
+    console.log("✅ Reclamo registrado en hoja 'Reclamos' con link");
+  } catch (error) {
+    console.error("❌ Error guardando datos del reclamo:", error.response?.data || error.message);
+  }
+}
+
+export { guardarReclamoEnSheet };
+
 
 

@@ -84,7 +84,28 @@ const flujos = {
   flujo_puntos_venta: {
     nombre: 'Puntos de venta físicos',
     intencion: 'puntos_venta',
+  },
+  reclamo: {
+    intencion: 'reclamo',
+    keywords: [
+      'reclamo',
+      'queja',
+      'problema',
+      'inconformidad',
+      'llegó mal',
+      'no llegó',
+      'equivocado',
+      'producto malo',
+      'defectuoso',
+      'incompleto',
+      'faltó',
+      'reembolso',
+      'devolución',
+      'cambiar producto'
+    ],
+    pregunta: '¿Podrías contarnos más sobre tu reclamo para ayudarte mejor?'
   }
+
 };
 
 export default flujos;
