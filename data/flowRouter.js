@@ -108,10 +108,11 @@ const flowRouter = {
 
     // FLUJO: PUNTOS DE VENTA
     puntos_venta: async (userId, opcion, whatsappService) => {
-        const respuesta = "📍 ¿En qué ciudad te encuentras? Te compartiré los puntos de venta más cercanos.";
-        await whatsappService.sendMessage(userId, respuesta);
-        return { tipo: 'texto', contenido: respuesta };
+        const mensaje = obtenerMensajePuntosVenta(opcion);
+        await whatsappService.sendMessage(userId, mensaje);
+        return { tipo: 'texto', contenido: mensaje };
     }
+
 };
 
 export default flowRouter;

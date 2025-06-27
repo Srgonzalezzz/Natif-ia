@@ -17,9 +17,22 @@ import {
     sendWelcomeMessage
 } from './menuHandler.js';
 import whatsappService from '../whatsappService.js';
+import detectarIntencionDesdeTexto from '../../../data/detectarIntencionDesdeTexto.js';
+
 
 export default async function handleTextMessage(text, userId, senderInfo) {
     const incomingMessage = text.toLowerCase().trim();
+    const flujoDetectado = detectarIntencionDesdeTexto(incomingMessage);
+
+    if (flujoDetectado) {
+        await ejecutarFlujoConversacional(userId, flujoDetectado);
+        return;
+    }
+
+    await whatsappService.sendMessage(
+        userId,
+        '🤖 No entendí tu mensaje. Puedes escribirme por ejemplo: "quiero factura" o "puntos de venta".'
+    );
 
     let estado = await stateStore.get(userId);
     if (!esEstadoVigente(estado)) {

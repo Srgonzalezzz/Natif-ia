@@ -4,10 +4,23 @@ import flowRouter from '../../../data/flowRouter.js';
 import flujosConversacionales from '../../../data/flows.js'; // ✅ Import estático correcto
 import { encontrarOpcionParecida } from '../../utils/textFormatter.js';
 import { sendWelcomeMenu } from './menuHandler.js';
+import puntosVentaPorCiudad from '../../../data/puntosVentaPorCiudad.js';
+
 
 export function encontrarFlujoPorIntencion(intencion) {
   const flujos = Object.values(flujosConversacionales);
   return flujos.find(f => f.intencion === intencion);
+}
+
+export function obtenerMensajePuntosVenta(ciudad) {
+  const clave = ciudad.trim().toLowerCase();
+  const tiendas = puntosVentaPorCiudad[clave];
+
+  if (!tiendas) {
+    return `😕 Lo siento, no tenemos puntos de venta registrados en *${ciudad}*. Puedes intentar con otra ciudad.`;
+  }
+
+  return `🏬 *Puntos de venta en ${ciudad.charAt(0).toUpperCase() + ciudad.slice(1)}:*\n\n${tiendas.map(t => `- ${t}`).join('\n')}`;
 }
 
 export async function ejecutarFlujoConversacional(userId, flujo) {
@@ -48,14 +61,20 @@ export async function resolverFlujo(userId, input, estado) {
   const flujo = estado.flujo_actual;
   const opciones = flujo.opciones || [];
 
-  const index = encontrarOpcionParecida(opciones, input);
-  if (index === -1) {
-    await whatsappService.sendMessage(userId, "❌ Opción no válida. Intenta seleccionar desde el menú.");
-    return;
-  }
+  let opcionElegida = input;
 
-  const opcionElegida = opciones[index];
-  await whatsappService.sendMessage(userId, `✅ Has seleccionado: *${opcionElegida}*`);
+  if (opciones.length > 0) {
+    const index = encontrarOpcionParecida(opciones, input);
+    if (index === -1) {
+      await whatsappService.sendMessage(userId, "❌ Opción no válida. Intenta seleccionar desde el menú.");
+      return;
+    }
+    opcionElegida = opciones[index];
+    await whatsappService.sendMessage(userId, `✅ Has seleccionado: *${opcionElegida}*`);
+  } else {
+    // Confirmación en flujos sin opciones (como ciudades)
+    await whatsappService.sendMessage(userId, `✅ Has escrito: *${opcionElegida}*`);
+  }
 
   if (flowRouter[flujo.step]) {
     await flowRouter[flujo.step](userId, opcionElegida, whatsappService);
@@ -116,4 +135,5 @@ export async function resolverSeleccionFlujo(userId, optionId, estado) {
     subestado: 'menu_principal',
     ultimaActualizacion: Date.now()
   });
+
 }

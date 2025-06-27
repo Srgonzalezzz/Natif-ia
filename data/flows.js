@@ -81,9 +81,13 @@ const flujos = {
     campos_distribuidor: ["Nombre del negocio", "Ciudad", "Tipo de punto de venta", "Email"],
     respuesta_final: "Gracias por tu interés. Tu propuesta será evaluada por nuestro equipo."
   },
-  flujo_puntos_venta: {
-    nombre: 'Puntos de venta físicos',
-    intencion: 'puntos_venta',
+  puntos_venta: {
+    nombre: "Puntos de Venta",
+    intencion: "puntos_venta",
+    keywords: ["puntos de venta"], 
+    step: "mostrar_puntos_venta",
+    pregunta: "¿En qué ciudad estás buscando nuestros puntos de venta?",
+    opciones: [] // no se requieren opciones porque se espera entrada libre
   },
   reclamo: {
     intencion: 'reclamo',
