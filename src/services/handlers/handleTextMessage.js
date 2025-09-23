@@ -1,8 +1,7 @@
+// src/services/handlers/handleTextMessage.js
 import { greetings, closingExpressions } from '../constants.js';
-import stateStore from '../stateStore.js';
-import detectarIntencion from '../../utils/intentionClassifier.js';
-import { esEstadoVigente } from '../../utils/estadoUtils.js';
-
+import { getEstado, setEstado, resetEstado } from '../../utils/stateManager.js';
+import detectarIntencionPipeline from '../../utils/intentionService.js';
 import {
     ejecutarFlujoConversacional,
     resolverFlujo,
@@ -14,77 +13,110 @@ import { handleTrackingQuery } from './trackingHandler.js';
 import factura from './facturaHandler.js';
 import {
     sendWelcomeMenu,
-    sendWelcomeMessage
+    sendWelcomeMessage,
+    capturarQuejaYRedirigir
 } from './menuHandler.js';
-import whatsappService from '../whatsappService.js';
-import detectarIntencionDesdeTexto from '../../../data/detectarIntencionDesdeTexto.js';
 
+import whatsappService from '../whatsappService.js';
+import { buscarPedido } from '../shopifyService.js';
 
 export default async function handleTextMessage(text, userId, senderInfo) {
-    const incomingMessage = text.toLowerCase().trim();
-    const flujoDetectado = detectarIntencionDesdeTexto(incomingMessage);
+    const incomingMessage = String(text).toLowerCase().trim();
 
-    if (flujoDetectado) {
-        await ejecutarFlujoConversacional(userId, flujoDetectado);
-        return;
-    }
-
-    await whatsappService.sendMessage(
-        userId,
-        '🤖 No entendí tu mensaje. Puedes escribirme por ejemplo: "quiero factura" o "puntos de venta".'
-    );
-
-    let estado = await stateStore.get(userId);
-    if (!esEstadoVigente(estado)) {
-        estado = { estado: 'inicio', subestado: 'menu_principal', historial: [] };
-    }
-
-    const historial = estado?.historial || [];
-    historial.push({ tipo: 'usuario', texto: incomingMessage, timestamp: new Date().toISOString() });
-    await stateStore.set(userId, { ...estado, historial, ultimaActualizacion: Date.now() });
-
+    // 1. Cierre de conversación
     if (closingExpressions.some(exp => incomingMessage.includes(exp))) {
         const { cerrarChat } = await import('./menuHandler.js');
         return await cerrarChat(userId);
     }
 
+    // 2. Saludos
     if (greetings.some(greet => incomingMessage.includes(greet))) {
         await sendWelcomeMessage(userId, senderInfo);
         await sendWelcomeMenu(userId);
         return;
     }
 
+    // 3. Intentos rápidos (ej: flujo por texto)
+    const flujoDetectado = (await import('../../../data/detectarIntencionDesdeTexto.js')).default(incomingMessage);
+    if (flujoDetectado) {
+        await ejecutarFlujoConversacional(userId, flujoDetectado);
+        return;
+    }
+
+    // 4. Verificar estado
+    let estado = await getEstado(userId);
+    if (!estado) {
+        estado = await resetEstado(userId);
+    }
+
+    await capturarQuejaYRedirigir(userId, incomingMessage, senderInfo);
+
+    const historial = estado?.historial || [];
+    historial.push({ tipo: 'usuario', texto: incomingMessage, timestamp: new Date().toISOString() });
+    await (await import('../stateStore.js')).default.set(userId, { ...estado, historial, ultimaActualizacion: Date.now() });
+
+    // 5. Rutas por estado
     switch (estado.estado) {
         case 'seguimiento':
             if (estado.subestado === 'esperando_guia') {
-                await handleTrackingQuery(incomingMessage, userId);
+                const pedido = await buscarPedido(incomingMessage);
+                if (pedido) {
+                    const productos = pedido.productos?.join(', ') || 'N/A';
+                    await whatsappService.sendMessage(userId, `✅ Pedido encontrado (${pedido.tipo || 'N/A'}):\n\n📦 Pedido: ${pedido.pedido}\n🛍 Productos: ${productos}\n📋 Estado: ${pedido.estado || 'Sin información'}\n🚚 Guía: ${pedido.tracking || 'No asignada'}\n🏢 Transportadora: ${pedido.empresa_envio || 'N/A'}\n🔗 Rastreo: ${pedido.link || 'No disponible'}\n\n👤 Cliente: ${pedido.cliente || 'N/A'}\n📧 Correo: ${pedido.correo || 'N/A'}`);
+                    await setEstado(userId, 'inicio', 'menu_principal');
+                } else {
+                    await whatsappService.sendMessage(userId, '❌ No encontré ningún pedido con ese número. Verifica si escribiste bien tu número de orden o guía.');
+                }
             }
             break;
+
         case 'ia':
             if (estado.subestado === 'esperando_pregunta') {
                 await handleAssistantFlow(userId, incomingMessage, senderInfo);
             }
             break;
+
         case 'factura':
             await factura(userId, incomingMessage, estado);
             break;
+
         case 'flujo':
             await resolverFlujo(userId, incomingMessage, estado);
             break;
+
+        case 'reporte_pedido': {
+            // casos de media y texto
+            if (estado.subestado === 'esperando_foto_equivocado') {
+                await whatsappService.sendMessage(userId, "✅ Gracias por la foto. Revisaremos el caso de *producto equivocado* y nos pondremos en contacto pronto.");
+                await resetEstado(userId);
+                return;
+            }
+            if (estado.subestado === 'esperando_foto_danado') {
+                await whatsappService.sendMessage(userId, "✅ Gracias por la foto. Hemos recibido tu reclamo de *producto dañado*. Nuestro equipo lo revisará.");
+                await resetEstado(userId);
+                return;
+            }
+            if (estado.subestado === 'esperando_texto_incompleto') {
+                await whatsappService.sendMessage(userId, `✅ Hemos recibido tu mensaje sobre el pedido incompleto: "${incomingMessage}". Te daremos solución lo antes posible.`);
+                await resetEstado(userId);
+                return;
+            }
+            break;
+        }
+
         default: {
-            const intencion = detectarIntencion(incomingMessage);
+            // detectar intención con pipeline
+            const intencion = await detectarIntencionPipeline(incomingMessage, userId, estado.historial || []);
             const flujo = encontrarFlujoPorIntencion(intencion);
 
-            if (flujo?.intencion === 'factura') {
-                await stateStore.set(userId, {
-                    estado: 'factura', subestado: 'factura_electronica', ultimaActualizacion: Date.now()
-                });
-                await whatsappService.sendMessage(userId, 'Claro, indícanos tu número de pedido para emitir tu factura electrónica 🧾');
+            if (flujo?.intencion === 'estado_pedido') {
+                await setEstado(userId, 'seguimiento', 'esperando_guia');
+                await whatsappService.sendMessage(userId, 'Por favor, envíame tu número de orden (#3030) o tu número de guía 📦');
                 return;
             }
 
             if (estado.estado === 'inicio' && estado.subestado === 'menu_principal') {
-                await sendWelcomeMenu(userId); // O un mensaje fijo tipo: await whatsappService.sendMessage(userId, "¿Cómo puedo ayudarte hoy?");
+                await sendWelcomeMenu(userId);
                 return;
             }
 
@@ -93,11 +125,10 @@ export default async function handleTextMessage(text, userId, senderInfo) {
                 return;
             }
 
+            // fallback: saludo y menú
             await sendWelcomeMessage(userId, senderInfo);
             await sendWelcomeMenu(userId);
-            await stateStore.set(userId, {
-                estado: 'inicio', subestado: 'menu_principal', ultimaActualizacion: Date.now()
-            });
+            await setEstado(userId, 'inicio', 'menu_principal');
         }
     }
 }

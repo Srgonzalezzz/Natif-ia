@@ -1,85 +1,62 @@
-import whatsappService from '../whatsappService.js';
-import { buscarPedidoPorNumero } from '../shopifyService.js';
+// src/services/handlers/facturaHandler.js
+import stateStore from "../stateStore.js";
+import whatsappService from "../whatsappService.js";
 import { guardarFacturaEnSheet } from '../../utils/googleOAuthLogger.js';
-import flujosConversacionales from '../../../data/flows.js';
-import stateStore from '../stateStore.js';
-import { sendWelcomeMenu } from './menuHandler.js'; // 
+import { sendWelcomeMenu } from "./menuHandler.js";
+import { setEstado, updateEstado, resetEstado } from '../../utils/stateManager.js';
 
-
-export default async function factura(userId, messageText, estado) {
-  const flujo = flujosConversacionales['flujo_4'];
-  const step = estado.subestado;
-  const texto = messageText.trim();
-
-  if (step === 'factura_electronica') {
-    const pedido = await buscarPedidoPorNumero(texto);
-
-    if (!pedido) {
-      await whatsappService.sendMessage(userId, "⚠️ No encontramos ese número de pedido. Asegúrate de escribirlo correctamente, como por ejemplo: #3075.");
-      return;
-    }
-
-    await whatsappService.sendMessage(userId, `✅ Pedido encontrado:\n*Pedido:* ${pedido.pedido}\n*Cliente:* ${pedido.cliente}\n*Productos:* ${pedido.productos.join(', ')}`);
-    await whatsappService.sendMessage(userId, "Para emitir la factura necesito algunos datos adicionales. Vamos uno por uno 😊");
-
-    await whatsappService.sendMessage(userId,
-      `Por favor indícame los siguientes datos separados por comas:\n\n` +
-      `*1.* Nombre / Razón social\n*2.* NIT o Cédula\n*3.* Dirección\n*4.* Ciudad\n*5.* Correo\n\n` +
-      `Ejemplo:\nNATIF S.A.S, 900123456, Calle 123 #45-67, Bogotá, facturas@natif.com`
-    );
-
-    await stateStore.set(userId, {
-      estado: 'factura',
-      subestado: 'esperando_datos_factura',
-      datos_factura: {
-        pedido: texto,
-        cliente: pedido.cliente,
-        productos: pedido.productos,
-        ultimaActualizacion: Date.now()
+// ----------------------
+// HANDLER PRINCIPAL
+// ----------------------
+export default async function facturaHandler(userId, message, state) {
+  try {
+    if (state?.subestado === "factura_electronica") {
+      const pedido = message.trim();
+      if (!pedido.match(/^\d+$/)) {
+        await whatsappService.sendMessage(userId, "⚠️ Por favor indícanos un número de pedido válido.");
+        return;
       }
-    });
-
-    return;
-  }
-
-  if (step === 'esperando_datos_factura') {
-    const partes = texto.split(',').map(p => p.trim());
-
-    if (partes.length < 5) {
-      await whatsappService.sendMessage(userId, "⚠️ Me faltan algunos datos. Por favor indícalos todos separados por comas como en el ejemplo.");
+      await setEstado(userId, 'factura', 'esperando_datos_factura', { pedido });
+      await whatsappService.sendMessage(userId, "📄 Perfecto. Ahora necesito los siguientes datos (separados por comas):\n\n" +
+        "1️⃣ Nombre / Razón social\n2️⃣ NIT o Cédula\n3️⃣ Dirección\n4️⃣ Ciudad\n5️⃣ Correo electrónico\n\nEjemplo:\n*Mi Empresa S.A.S, 123456789, Calle 123 #45-67, Bogotá, correo@dominio.com*");
       return;
     }
 
-    const [razon, nit, direccion, ciudad, correo] = partes;
+    if (state?.subestado === "esperando_datos_factura") {
+      const partes = message.split(",").map((p) => p.trim());
 
-    const datosFactura = {
-      ...estado.datos_factura,
-      "Nombre / Razón social": razon,
-      "NIT o Cédula": nit,
-      "Dirección": direccion,
-      "Ciudad": ciudad,
-      "Correo": correo
-    };
+      if (partes.length < 5) {
+        await whatsappService.sendMessage(userId, "⚠️ Me faltan datos. Recuerda enviarlos en el formato:\n\n*Nombre / Razón social, NIT o Cédula, Dirección, Ciudad, Correo electrónico*");
+        return;
+      }
 
-    try {
-      await guardarFacturaEnSheet(datosFactura); // 👈 Puede fallar, por eso lo encerramos en try-catch
+      const [razonSocial, nit, direccion, ciudad, correo] = partes;
 
-      await whatsappService.sendMessage(userId, "✅ ¡Gracias! Tu factura será enviada en un plazo máximo de 48 horas hábiles."); // ✅ Confirmación
-      await sendWelcomeMenu(userId); // 👈 Solo se ejecuta si todo sale bien
+      if (!/\S+@\S+\.\S+/.test(correo)) {
+        await whatsappService.sendMessage(userId, "⚠️ El correo no parece válido. Por favor revisa el formato e intenta de nuevo.");
+        return;
+      }
 
-      await stateStore.set(userId, {
-        estado: 'inicio',
-        subestado: 'menu_principal',
-        ultimaActualizacion: Date.now()
-      });
+      const datosFactura = {
+        pedido: state.pedido,
+        cliente: userId,
+        "Nombre / Razón social": razonSocial,
+        "NIT o Cédula": nit,
+        Dirección: direccion,
+        Ciudad: ciudad,
+        Correo: correo,
+      };
 
-    } catch (err) {
-      console.error("❌ Error guardando datos de factura:", err);
-      await whatsappService.sendMessage(userId, "😓 Ocurrió un error al registrar tu factura. Intenta más tarde o contacta a soporte.");
+      await guardarFacturaEnSheet(datosFactura);
+
+      await whatsappService.sendMessage(userId, "✅ Tu solicitud de factura fue registrada correctamente.\n\nNuestro equipo la procesará y te la enviaremos al correo proporcionado.");
+
+      await resetEstado(userId);
+      await sendWelcomeMenu(userId);
+      return;
     }
-
-    return;
+  } catch (err) {
+    console.error("❌ Error en facturaHandler:", err);
+    await whatsappService.sendMessage(userId, "😓 Ocurrió un error al procesar tu factura. Intenta nuevamente más tarde.");
   }
-
 }
-

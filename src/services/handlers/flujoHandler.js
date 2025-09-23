@@ -1,14 +1,13 @@
-import stateStore from '../stateStore.js';
+// src/services/handlers/flujoHandler.js
 import whatsappService from '../whatsappService.js';
 import flowRouter from '../../../data/flowRouter.js';
-import flujosConversacionales from '../../../data/flows.js'; // ✅ Import estático correcto
 import { encontrarOpcionParecida } from '../../utils/textFormatter.js';
 import { sendWelcomeMenu } from './menuHandler.js';
 import puntosVentaPorCiudad from '../../../data/puntosVentaPorCiudad.js';
-
+import { setEstado } from '../../utils/stateManager.js';
 
 export function encontrarFlujoPorIntencion(intencion) {
-  const flujos = Object.values(flujosConversacionales);
+  const flujos = Object.values(flowRouter || {});
   return flujos.find(f => f.intencion === intencion);
 }
 
@@ -49,12 +48,7 @@ export async function ejecutarFlujoConversacional(userId, flujo) {
     }
   }
 
-  await stateStore.set(userId, {
-    estado: 'flujo',
-    subestado: flujo.step,
-    flujo_actual: flujo,
-    ultimaActualizacion: Date.now()
-  });
+  await setEstado(userId, 'flujo', flujo.step, { flujo_actual: flujo });
 }
 
 export async function resolverFlujo(userId, input, estado) {
@@ -72,7 +66,6 @@ export async function resolverFlujo(userId, input, estado) {
     opcionElegida = opciones[index];
     await whatsappService.sendMessage(userId, `✅ Has seleccionado: *${opcionElegida}*`);
   } else {
-    // Confirmación en flujos sin opciones (como ciudades)
     await whatsappService.sendMessage(userId, `✅ Has escrito: *${opcionElegida}*`);
   }
 
@@ -83,57 +76,69 @@ export async function resolverFlujo(userId, input, estado) {
   }
 
   await sendWelcomeMenu(userId);
-  await stateStore.set(userId, {
-    estado: 'inicio',
-    subestado: 'menu_principal',
-    ultimaActualizacion: Date.now()
-  });
+  await setEstado(userId, 'inicio', 'menu_principal');
 }
 
 export async function resolverSeleccionFlujo(userId, optionId, estado) {
   const flujo = estado?.flujo_actual;
   if (!flujo) {
-    await whatsappService.sendMessage(userId, "No tengo contexto del flujo actual. Escribe *menu* para empezar de nuevo.");
+    await whatsappService.sendMessage(userId, "⚠️ No tengo contexto del flujo actual. Escribe *menu* para empezar de nuevo.");
     return;
   }
 
-  const [_, step, __, index] = optionId.split('_');
-  const opcionElegida = flujo.opciones?.[parseInt(index)];
+  const partes = optionId.split('_');
+  const index = parseInt(partes.at(-1));
+  const opciones = flujo.opciones || [];
+  const opcionElegida = opciones[index];
 
   if (!opcionElegida || typeof opcionElegida !== 'string') {
-    await whatsappService.sendMessage(userId, "❌ Hubo un problema con tu selección. Intenta nuevamente.");
+    console.warn(`⚠️ Opción inválida: index ${index} en flujo "${flujo.step}".`);
+    await whatsappService.sendMessage(userId, "❌ Hubo un problema con tu selección. Intenta nuevamente o escribe *menu*.");
     return;
   }
 
   await whatsappService.sendMessage(userId, `✅ Has seleccionado: *${opcionElegida}*`);
 
-  if (flowRouter[flujo.step]) {
-    const resultado = await flowRouter[flujo.step](userId, opcionElegida, whatsappService);
-    const estadoActual = await stateStore.get(userId);
-    const historial = estadoActual?.historial || [];
-
-    if (resultado?.tipo === 'texto' && resultado.contenido) {
-      historial.push({
-        tipo: 'bot',
-        texto: resultado.contenido,
-        timestamp: new Date().toISOString()
-      });
+  if (["Producto equivocado", "Producto dañado", "Pedido incompleto"].includes(opcionElegida)) {
+    if (opcionElegida === "Producto equivocado") {
+      await whatsappService.sendMessage(userId, "📦 Parece que recibiste un producto diferente al que pediste. Por favor compártenos una foto del producto recibido.");
+      await setEstado(userId, 'reclamo', 'esperando_foto_equivocado');
     }
 
-    await stateStore.set(userId, {
-      ...estadoActual,
-      historial,
-      ultimaActualizacion: Date.now()
-    });
+    if (opcionElegida === "Producto dañado") {
+      await whatsappService.sendMessage(userId, "😥 Vaya, recibiste un producto dañado. Por favor envíanos una foto o video.");
+      await setEstado(userId, 'reclamo', 'esperando_foto_danado');
+    }
+
+    if (opcionElegida === "Pedido incompleto") {
+      await whatsappService.sendMessage(userId, "📝 Indícanos qué producto faltó en tu pedido.");
+      await setEstado(userId, 'reclamo', 'esperando_texto_incompleto');
+    }
+
+    return;
+  }
+
+  const claveRespuesta = 'respuesta_' + opcionElegida
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/gi, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_|_$/g, "");
+
+  const respuesta = flujo[claveRespuesta];
+
+  if (respuesta) {
+    const mensajes = Array.isArray(respuesta) ? respuesta : [respuesta];
+    for (const mensaje of mensajes) {
+      await whatsappService.sendMessage(userId, mensaje);
+    }
+  } else if (flowRouter[flujo.step]) {
+    await flowRouter[flujo.step](userId, opcionElegida, whatsappService);
   } else {
-    await whatsappService.sendMessage(userId, "⚠️ Este flujo aún no está configurado.");
+    await whatsappService.sendMessage(userId, "⚠️ Este flujo aún no tiene acción configurada.");
   }
 
   await sendWelcomeMenu(userId);
-  await stateStore.set(userId, {
-    estado: 'inicio',
-    subestado: 'menu_principal',
-    ultimaActualizacion: Date.now()
-  });
-
+  await setEstado(userId, 'inicio', 'menu_principal');
 }

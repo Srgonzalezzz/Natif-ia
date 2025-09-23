@@ -1,10 +1,6 @@
-// Modularización completa de messageHandler.js
-// Esta clase orquesta llamadas a módulos funcionales separados.
-
 import whatsappService from './whatsappService.js';
 import stateStore from './stateStore.js';
-import { greetings, closingExpressions } from './constants.js';
-
+import handleMediaMessage from '../services/handlers/handleMediaMessage.js';
 import handleTextMessage from '../services/handlers/handleTextMessage.js';
 import handleInteractiveMessage from '../services/handlers/handleInteractiveMessage.js';
 import { clearUserTimers } from '../services/handlers/inactivityTimers.js';
@@ -18,8 +14,14 @@ class MessageHandler {
 
       if (message.type === 'text' && message.text?.body) {
         await handleTextMessage(message.text.body, userId, senderInfo);
+
       } else if (message.type === 'interactive') {
+        // 👉 Aquí se manejan los botones y listas
         await handleInteractiveMessage(message, senderInfo);
+
+      } else if (["image", "video", "audio", "document"].includes(message.type)) {
+        // 👉 Aquí solo media (fotos, videos, audios, documentos)
+        await handleMediaMessage(message, userId, senderInfo);
       }
 
       await whatsappService.markAsRead(message.id);
@@ -30,7 +32,10 @@ class MessageHandler {
 
   async cerrarChat(userId) {
     await clearUserTimers(userId);
-    await whatsappService.sendMessage(userId, "✨ ¡Gracias por confiar en nosotros! Si vuelves a necesitar ayuda, solo escríbeme por este mismo chat 💬. ¡Que tengas un excelente día! 🙌");
+    await whatsappService.sendMessage(
+      userId,
+      "✨ ¡Gracias por confiar en nosotros! Si vuelves a necesitar ayuda, solo escríbeme por este mismo chat 💬. ¡Que tengas un excelente día! 🙌"
+    );
     await stateStore.delete(userId);
   }
 }

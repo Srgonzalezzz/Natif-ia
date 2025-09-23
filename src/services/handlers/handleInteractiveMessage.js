@@ -1,3 +1,4 @@
+// src/services/handlers/handleInteractiveMessage.js
 import stateStore from '../stateStore.js';
 import {
     handleAccionCarrito,

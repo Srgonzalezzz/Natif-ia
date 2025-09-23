@@ -2,7 +2,7 @@ import whatsappService from '../whatsappService.js';
 import stateStore from '../stateStore.js';
 
 export async function redirigirASoporte(userId, mensaje, senderInfo) {
-  const numeroSupervisor = '573006888304';
+  const numeroSupervisor = '573015972410';
   const nombreCliente = senderInfo?.profile?.name || 'Cliente sin nombre';
 
   const plantilla = {

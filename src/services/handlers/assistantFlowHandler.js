@@ -1,40 +1,37 @@
-import stateStore from '../stateStore.js';
-import detectarIntencion from '../../utils/intentionClassifier.js';
-import buscarEnDocumentoLocal from '../localKnowledge.js';
+// src/services/handlers/assistantFlowHandler.js
+import { getEstado, setEstado, updateEstado, resetEstado } from '../../utils/stateManager.js';
+import detectarIntencionPipeline from '../../utils/intentionService.js';
+import { buscarEnPDFs } from '../pdfIndexer.js'; // opcional si lo necesitas directo
+import { procesarConsultaLibre } from '../assistantOrchestrator.js';
 import GeminiService from '../geminiService.js';
-import { formatearRespuesta, formatearPorClave } from '../../utils/textFormatter.js';
-import { registrarLog } from '../../utils/googleOAuthLogger.js';
-import {
-  ejecutarFlujoConversacional,
-  encontrarFlujoPorIntencion
-} from '../handlers/flujoHandler.js';
-import { redirigirASoporte } from './soporteHandler.js';
-import {
-  sendWelcomeMessage,
-  sendWelcomeMenu,
-  cerrarChat
-} from './menuHandler.js';
+import { formatRespuestaFromSource } from '../../utils/responseFormatter.js';
+import { registrarLog, guardarReclamoEnSheet } from '../../utils/googleOAuthLogger.js';
+import { ejecutarFlujoConversacional, encontrarFlujoPorIntencion } from './flujoHandler.js';
+import { escalarReclamo } from '../soporteService.js';
+import { sendWelcomeMenu, cerrarChat } from './menuHandler.js';
 import whatsappService from '../whatsappService.js';
-import factura from './facturaHandler.js';
-import { guardarReclamoEnSheet } from '../../utils/googleOAuthLogger.js';
-
-
+import { setInactivityTimers, clearUserTimers } from '../../services/timers.js';
 
 export default async function handleAssistantFlow(userId, message, senderInfo) {
   try {
-    const state = await stateStore.get(userId);
-    clearTimeout(state?.timeout);
+    const state = await getEstado(userId);
+    clearUserTimers(userId);
 
+    // 1) Si venimos en sub-flujo de factura, delegamos (mantener compatibilidad)
     if (state?.estado === 'factura') {
-      await factura(userId, message, state);
+      // delega a handler existente
+      const factura = await import('./facturaHandler.js');
+      await factura.default(userId, message, state);
       return;
     }
 
-    const intencion = await detectarIntencion(message);
+    // 2) Clasificar intención (central)
+    const intencion = await detectarIntencionPipeline(message, userId, state?.historial || []);
 
+    // 3) Reclamo (salva a sheet y escala)
     if (intencion === 'reclamo') {
       const fecha = new Date().toLocaleString('es-PE', { timeZone: 'America/Lima' });
-      const cliente = senderInfo?.nombre || 'Sin nombre';
+      const cliente = senderInfo?.nombre || senderInfo?.profile?.name || 'Sin nombre';
       const numero = senderInfo?.numero || userId;
 
       await guardarReclamoEnSheet({
@@ -44,18 +41,14 @@ export default async function handleAssistantFlow(userId, message, senderInfo) {
         reclamo: message
       });
 
-      await redirigirASoporte(userId, message, senderInfo);
+      await escalarReclamo({ userId, mensaje: message, senderInfo });
       return;
     }
 
-
+    // 4) Flujos predefinidos (estado / facturación)
     const flujo = encontrarFlujoPorIntencion(intencion);
     if (flujo?.intencion === 'factura') {
-      await stateStore.set(userId, {
-        estado: 'factura',
-        subestado: 'factura_electronica',
-        ultimaActualizacion: Date.now()
-      });
+      await setEstado(userId, 'factura', 'factura_electronica');
       await whatsappService.sendMessage(userId, flujo.pregunta);
       return;
     }
@@ -65,38 +58,39 @@ export default async function handleAssistantFlow(userId, message, senderInfo) {
       return;
     }
 
-    const respuestaLocal = await buscarEnDocumentoLocal(message);
-    const respuesta = respuestaLocal
-      ? formatearPorClave(intencion, Array.isArray(respuestaLocal) ? respuestaLocal.map(x => x.texto).join('\n') : respuestaLocal)
-      : formatearRespuesta(await GeminiService(userId, message));
+    // 5) Consulta libre (RAG + Gemini)
+    const respuestaSource = await procesarConsultaLibre(userId, message, intencion);
+    const respuesta = formatRespuestaFromSource(respuestaSource, intencion) || (await GeminiService(userId, message));
 
+    // 6) Enviar
     await whatsappService.sendMessage(userId, respuesta);
 
-    const actualizado = await stateStore.get(userId);
+    // 7) Guardar historial y estado
+    const actualizado = (await getEstado(userId)) || {};
     const historial = actualizado?.historial || [];
     historial.push({ tipo: 'bot', texto: respuesta, timestamp: new Date().toISOString() });
+    await updateEstado(userId, { historial, ultimaActualizacion: Date.now() });
 
-    await stateStore.set(userId, {
-      ...actualizado,
-      historial,
-      ultimaActualizacion: Date.now()
-    });
-
+    // 8) Log
     await registrarLog({
       userId,
       pregunta: message,
       respuesta,
-      fuente: respuestaLocal ? 'local' : 'gemini',
-      intencion: typeof intencion === 'object' ? JSON.stringify(intencion) : String(intencion)
+      fuente: respuestaSource?.origen || 'gemini',
+      intencion: String(intencion)
     });
 
-    if (message.includes('gracias')) return await cerrarChat(userId);
+    // 9) Cierre si escribe "gracias"
+    if (message.toLowerCase().includes('gracias')) {
+      await cerrarChat(userId);
+      return;
+    }
 
-    const { setInactivityTimers } = await import('./inactivityTimers.js');
+    // 10) Volver a timers (inactividad)
     setInactivityTimers(userId);
 
   } catch (err) {
-    console.error("Error en flujo IA:", err);
+    console.error("assistantFlowHandler error:", err);
     await whatsappService.sendMessage(userId, "😓 Uy, algo salió mal procesando tu solicitud. Intenta nuevamente o escribe *menu* para volver al inicio.");
   }
 }

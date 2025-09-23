@@ -1,34 +1,72 @@
-// src/services/shopifyService.js
+// src/services/shopifyOrders.js
 import axios from 'axios';
 
 const SHOPIFY_STORE = 'natifbyissavasquez';
 const ACCESS_TOKEN = process.env.SHOPIFY_TOKEN;
 
-export async function buscarPedidoPorGuia(trackingNumber) {
+function getFechaHace8Dias() {
+  const hoy = new Date();
+  const hace8 = new Date(hoy.setDate(hoy.getDate() - 15));
+  return hace8.toISOString();
+}
+
+/**
+ * Buscar pedido por número de orden (#3030) o número de guía (03456173)
+ * Solo revisa los últimos 8 días
+ */
+export async function buscarPedido(query) {
   try {
-    const res = await axios.get(
-      `https://${SHOPIFY_STORE}.myshopify.com/admin/api/2023-10/orders.json?status=any&limit=50`,
-      {
-        headers: {
-          'X-Shopify-Access-Token': ACCESS_TOKEN,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    const limpio = query.replace(/[^0-9]/g, ''); 
+    const fechaFiltro = getFechaHace8Dias();
 
-    const pedidos = res.data.orders;
+    // 1️⃣ Buscar por número de orden
+    const urlOrden = `https://${SHOPIFY_STORE}.myshopify.com/admin/api/2025-07/orders.json?status=any&name=%23${limpio}&created_at_min=${fechaFiltro}`;
 
-    for (const pedido of pedidos) {
+    const resOrden = await axios.get(urlOrden, {
+      headers: {
+        'X-Shopify-Access-Token': ACCESS_TOKEN,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (resOrden.data.orders?.length) {
+      const pedido = resOrden.data.orders[0];
+      return {
+        tipo: "orden",
+        pedido: pedido.name,
+        estado: pedido.fulfillment_status,
+        tracking: pedido.fulfillments?.[0]?.tracking_number || '',
+        empresa_envio: pedido.fulfillments?.[0]?.tracking_company || '',
+        link: pedido.fulfillments?.[0]?.tracking_url || '',
+        productos: pedido.line_items.map(p => p.title),
+        cliente: `${pedido.customer?.first_name || ''} ${pedido.customer?.last_name || ''}`.trim(),
+        correo: pedido.email,
+        creado: pedido.created_at,
+      };
+    }
+
+    // 2️⃣ Buscar por número de guía
+    const urlGuia = `https://${SHOPIFY_STORE}.myshopify.com/admin/api/2025-07/orders.json?status=any&limit=250&created_at_min=${fechaFiltro}`;
+    const resGuia = await axios.get(urlGuia, {
+      headers: {
+        'X-Shopify-Access-Token': ACCESS_TOKEN,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    for (const pedido of resGuia.data.orders) {
       for (const f of pedido.fulfillments || []) {
-        if (f.tracking_number === trackingNumber) {
+        if (f.tracking_number === limpio) {
           return {
+            tipo: "guia",
             pedido: pedido.name,
             estado: pedido.fulfillment_status,
             tracking: f.tracking_number,
             empresa_envio: f.tracking_company,
             link: f.tracking_url,
             productos: pedido.line_items.map(p => p.title),
-            cliente: pedido.customer?.email || 'Sin correo',
+            cliente: `${pedido.customer?.first_name || ''} ${pedido.customer?.last_name || ''}`.trim(),
+            correo: pedido.email,
             creado: pedido.created_at,
           };
         }
@@ -37,42 +75,7 @@ export async function buscarPedidoPorGuia(trackingNumber) {
 
     return null;
   } catch (err) {
-    console.error('Error en Shopify:', err.response?.data || err.message);
-    return null;
-  }
-}
-export async function buscarPedidoPorNumero(numeroPedido) {
-  try {
-    const limpio = numeroPedido.replace(/[^0-9]/g, ''); // "#3075" → "3075"
-    const nameBuscado = `#${limpio}`;
-
-    const url = `https://${SHOPIFY_STORE}.myshopify.com/admin/api/2023-10/orders.json?limit=250&status=any`;
-
-    console.log("🔍 Buscando pedido por nombre:", nameBuscado);
-
-    const res = await axios.get(url, {
-      headers: {
-        'X-Shopify-Access-Token': ACCESS_TOKEN,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const pedidos = res.data.orders;
-    const pedido = pedidos.find(p => p.name === nameBuscado);
-
-    if (!pedido) {
-      console.log("❌ Pedido no encontrado:", nameBuscado);
-      return null;
-    }
-
-    return {
-      pedido: pedido.name,
-      cliente: `${pedido.customer?.first_name || ''} ${pedido.customer?.last_name || ''}`.trim(),
-      productos: pedido.line_items.map(item => item.name),
-      correo: pedido.email
-    };
-  } catch (err) {
-    console.error('❌ Error consultando orden:', err.response?.data || err.message);
+    console.error("❌ Error en búsqueda:", err.response?.data || err.message);
     return null;
   }
 }

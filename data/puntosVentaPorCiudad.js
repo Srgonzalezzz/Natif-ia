@@ -1,4 +1,4 @@
-const puntosVentaPorCiudad = {
+export const puntosVentaPorCiudad = {
   bogota: [
     "Tienda Verde - Calle 85 #12-34",
     "BioBar - Cra 7 #123-45",
