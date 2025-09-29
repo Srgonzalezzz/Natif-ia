@@ -17,6 +17,42 @@ const flowRouter = {
   factura_electronica: facturaHandler,
   esperando_datos_factura: facturaHandler,
 
+  kinops: async (userId, opcion, whatsappService) => {
+    const respuestas = {
+      "ingredientes": "5 ingredientes, endulzados con stevia y eritritol, sin azúcar añadida, libres de gluten, producto vegano, vida útil de 2 años, 30 g por empaque",
+      "quiero comprar": "Puedes comprar en nuestra tienda online https://www.natifbyissavasquez.com/collections/kinops"
+    };
+
+    const key = normalizar(opcion);
+    const respuesta = respuestas[key] || "Lo siento, no entiendo tu pregunta. Vuelve a intentarlo.";
+    await whatsappService.sendMessage(userId, respuesta);
+    return { tipo: "texto", contenido: respuesta };
+  },
+
+  gummis: async (userId, opcion, whatsappService) => {
+    const respuestas = {
+      "ingredientes": "Sabores y colores 100 % naturales, endulzadas con alulosa y eritritol, bajo índice glucémico (apto para diabéticos), libres de gluten, sin colorantes ni saborizantes artificiales, vida útil de ~1 año, 50 g por empaque. Nota: Están en proceso de cambio a presentación de 35 g",
+      "quiero comprar": "Puedes comprar en nuestra tienda online https://www.natifbyissavasquez.com/collections/gummis"
+    };
+
+    const key = normalizar(opcion);
+    const respuesta = respuestas[key] || "Lo siento, no entiendo tu pregunta. Vuelve a intentarlo.";
+    await whatsappService.sendMessage(userId, respuesta);
+    return { tipo: "texto", contenido: respuesta };
+  },
+
+  chocotabs: async (userId, opcion, whatsappService) => {
+    const respuestas = {
+      "ingredientes": "Sabores y colores 100 % naturales, endulzadas con alulosa y eritritol, bajo índice glucémico (apto para diabéticos), libres de gluten, sin colorantes ni saborizantes artificiales, vida útil de ~1 año, 50 g por empaque. Nota: Están en proceso de cambio a presentación de 35 g",
+      "quiero comprar": "Puedes comprar en nuestra tienda online https://www.natifbyissavasquez.com/collections/gummis"
+    };
+
+    const key = normalizar(opcion);
+    const respuesta = respuestas[key] || "Lo siento, no entiendo tu pregunta. Vuelve a intentarlo.";
+    await whatsappService.sendMessage(userId, respuesta);
+    return { tipo: "texto", contenido: respuesta };
+  },
+
   // Preguntas frecuentes de compra
   faq_compra: async (userId, opcion, whatsappService) => {
     const respuestas = {
@@ -28,50 +64,16 @@ const flowRouter = {
     };
 
     const key = normalizar(opcion);
-    const respuesta = respuestas[key] || "⚠️ No tengo una respuesta configurada para esa opción.";
+    const respuesta = respuestas[key] || "Lo siento, no entiendo tu pregunta. Vuelve a intentarlo.";
     await whatsappService.sendMessage(userId, respuesta);
+
+    // ✅ Guardar estado para esperar la próxima interacción
+    const { setEstado } = await import('../utils/stateManager.js');
+    await setEstado(userId, 'flujo', 'faq_compra', { ultimaPregunta: opcion });
+
     return { tipo: "texto", contenido: respuesta };
   },
 
-  // Pedido mal
-  reporte_pedido_mal: async (userId, opcion, whatsappService) => {
-    const respuestas = {
-      "producto equivocado": "📦 Parece que recibiste un producto diferente al que pediste. Por favor compártenos una foto del producto recibido.",
-      "producto dañado": "😞 Lamentamos que tu pedido haya llegado dañado. Envíanos una foto del producto y del empaque exterior para darte una solución rápida.",
-      "producto incompleto": "📦 Si faltó algo en tu pedido, cuéntanos qué fue exactamente y lo solucionaremos lo antes posible."
-    };
-
-    const key = normalizar(opcion);
-    const respuesta = respuestas[key] || "⚠️ No tengo una respuesta configurada para esa opción.";
-    await whatsappService.sendMessage(userId, respuesta);
-
-    if (key === "producto equivocado") {
-      await stateStore.set(userId, { estado: "reporte_pedido", subestado: "esperando_foto_equivocado" });
-    }
-    if (key === "producto dañado") {
-      await stateStore.set(userId, { estado: "reporte_pedido", subestado: "esperando_foto_danado" });
-    }
-    if (key === "producto incompleto") {
-      await stateStore.set(userId, { estado: "reporte_pedido", subestado: "esperando_texto_incompleto" });
-    }
-
-
-  },
-
-  // Devoluciones
-  // cambio_devolucion: async (userId, opcion, whatsappService) => {
-  // const respuestas = {
-  // "si": "📬 Perfecto, podemos gestionar tu devolución. ¿Prefieres que lo recojamos en tu domicilio o enviarlo tú mismo?",
-  // "no": "🚫 Lo sentimos, por normas sanitarias no podemos aceptar devoluciones de productos abiertos."
-  // };
-
-  // const key = normalizar(opcion);
-  // const respuesta = respuestas[key] || "⚠️ No tengo una respuesta configurada para esa opción.";
-  // await whatsappService.sendMessage(userId, respuesta);
-  // return { tipo: "texto", contenido: respuesta };
-  // },
-
-  // Ingredientes
   ingredientes: async (userId, opcion, whatsappService) => {
     const respuestas = {
       "que es la alulosa": "🍬 La alulosa es un endulzante natural, bajo en calorías y apto para diabéticos.",
@@ -81,25 +83,11 @@ const flowRouter = {
     };
 
     const key = normalizar(opcion);
-    const respuesta = respuestas[key] || "⚠️ No tengo una respuesta configurada para esa opción.";
+    const respuesta = respuestas[key] || "Lo siento, no entiendo tu pregunta. Vuelve a intentarlo.";
     await whatsappService.sendMessage(userId, respuesta);
     return { tipo: "texto", contenido: respuesta };
   },
 
-  // Compra
-  // interes_compra: async (userId, opcion, whatsappService) => {
-  // const respuestas = {
-  // "colombia": "🇨🇴 Elige una forma de compra:\n\n1️⃣ Comprar online\n2️⃣ Ver puntos de venta\n3️⃣ Compra al por mayor",
-  // "otro pais": "🌎 Genial. ¿En qué país estás?\n¿Eres cliente final o distribuidor?\nY cuéntanos qué productos te interesan."
-  // };
-
-  // const key = normalizar(opcion);
-  // const respuesta = respuestas[key] || "⚠️ No tengo una respuesta configurada para esa opción.";
-  // await whatsappService.sendMessage(userId, respuesta);
-  // return { tipo: "texto", contenido: respuesta };
-  // },
-
-  // Reseñas
   resenas: async (userId, opcion, whatsappService) => {
     const respuestas = {
       "resena publica": "📝 Puedes dejar tu reseña en este enlace: https://natif.com/resenas",
@@ -108,7 +96,7 @@ const flowRouter = {
     };
 
     const key = normalizar(opcion);
-    const respuesta = respuestas[key] || "⚠️ No tengo una respuesta configurada para esa opción.";
+    const respuesta = respuestas[key] || "Lo siento, no entiendo tu pregunta. Vuelve a intentarlo.";
     await whatsappService.sendMessage(userId, respuesta);
     return { tipo: "texto", contenido: respuesta };
   },
@@ -122,7 +110,7 @@ const flowRouter = {
     };
 
     const key = normalizar(opcion);
-    const respuesta = respuestas[key] || "⚠️ No tengo una respuesta configurada para esa opción.";
+    const respuesta = respuestas[key] || "Lo siento, no entiendo tu pregunta. Vuelve a intentarlo.";
     await whatsappService.sendMessage(userId, respuesta);
     return { tipo: "texto", contenido: respuesta };
   },

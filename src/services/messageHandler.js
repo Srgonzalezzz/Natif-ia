@@ -1,42 +1,38 @@
+// src/services/MessageHandler.js
 import whatsappService from './whatsappService.js';
-import stateStore from './stateStore.js';
-import handleMediaMessage from '../services/handlers/handleMediaMessage.js';
-import handleTextMessage from '../services/handlers/handleTextMessage.js';
-import handleInteractiveMessage from '../services/handlers/handleInteractiveMessage.js';
-import { clearUserTimers } from '../services/handlers/inactivityTimers.js';
+import handleTextMessage from './handlers/handleTextMessage.js';
+import handleInteractiveMessage from './handlers/handleInteractiveMessage.js';
+import handleMediaMessage from './handlers/handleMediaMessage.js';
+import { setInactivityTimers, clearUserTimers } from './timers.js';
 
 class MessageHandler {
   async handleIncomingMessage(message, senderInfo) {
     if (!message) return;
 
-    try {
-      const userId = message.from;
+    const userId = message.from;
 
+    try {
+      // 👉 Procesar mensaje según tipo
       if (message.type === 'text' && message.text?.body) {
         await handleTextMessage(message.text.body, userId, senderInfo);
-
       } else if (message.type === 'interactive') {
-        // 👉 Aquí se manejan los botones y listas
         await handleInteractiveMessage(message, senderInfo);
-
       } else if (["image", "video", "audio", "document"].includes(message.type)) {
-        // 👉 Aquí solo media (fotos, videos, audios, documentos)
         await handleMediaMessage(message, userId, senderInfo);
+      } else {
+        console.warn(`⚠️ Tipo de mensaje no soportado: ${message.type}`);
       }
 
+      // ✅ Marcar como leído
       await whatsappService.markAsRead(message.id);
-    } catch (error) {
-      console.error("Error al manejar mensaje entrante:", error);
-    }
-  }
 
-  async cerrarChat(userId) {
-    await clearUserTimers(userId);
-    await whatsappService.sendMessage(
-      userId,
-      "✨ ¡Gracias por confiar en nosotros! Si vuelves a necesitar ayuda, solo escríbeme por este mismo chat 💬. ¡Que tengas un excelente día! 🙌"
-    );
-    await stateStore.delete(userId);
+      // ✅ Reiniciar timers en cualquier contexto
+      clearUserTimers(userId);
+      setInactivityTimers(userId);
+
+    } catch (error) {
+      console.error("❌ Error al manejar mensaje entrante:", error);
+    }
   }
 }
 

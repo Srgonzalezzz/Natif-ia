@@ -6,19 +6,61 @@ import { sendWelcomeMenu } from './menuHandler.js';
 import puntosVentaPorCiudad from '../../../data/puntosVentaPorCiudad.js';
 import { setEstado } from '../../utils/stateManager.js';
 
+// ----------------------
+// Helpers internos
+// ----------------------
+function normalizarClaveRespuesta(opcion) {
+  return 'respuesta_' + opcion
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/gi, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_|_$/g, "");
+}
+
+async function manejarReclamo(userId, opcionElegida) {
+  const reclamos = {
+    "Producto equivocado": {
+      mensaje: "📦 Parece que recibiste un producto diferente al que pediste. Por favor compártenos una foto del producto recibido.",
+      estado: ['reclamo', 'esperando_foto_equivocado']
+    },
+    "Producto dañado": {
+      mensaje: "😥 Vaya, recibiste un producto dañado. Por favor envíanos una foto o video.",
+      estado: ['reclamo', 'esperando_foto_danado']
+    },
+    "Pedido incompleto": {
+      mensaje: "📝 Indícanos qué producto faltó en tu pedido.",
+      estado: ['reclamo', 'esperando_texto_incompleto']
+    }
+  };
+
+  const reclamo = reclamos[opcionElegida];
+  if (!reclamo) return false;
+
+  await whatsappService.sendMessage(userId, reclamo.mensaje);
+  await setEstado(userId, ...reclamo.estado);
+  return true;
+}
+
+async function finalizarFlujo(userId) {
+  await sendWelcomeMenu(userId);
+  await setEstado(userId, 'inicio', 'menu_principal');
+}
+
+// ----------------------
+// Export functions
+// ----------------------
 export function encontrarFlujoPorIntencion(intencion) {
-  const flujos = Object.values(flowRouter || {});
-  return flujos.find(f => f.intencion === intencion);
+  return Object.values(flowRouter || {}).find(f => f.intencion === intencion);
 }
 
 export function obtenerMensajePuntosVenta(ciudad) {
   const clave = ciudad.trim().toLowerCase();
   const tiendas = puntosVentaPorCiudad[clave];
-
   if (!tiendas) {
     return `😕 Lo siento, no tenemos puntos de venta registrados en *${ciudad}*. Puedes intentar con otra ciudad.`;
   }
-
   return `🏬 *Puntos de venta en ${ciudad.charAt(0).toUpperCase() + ciudad.slice(1)}:*\n\n${tiendas.map(t => `- ${t}`).join('\n')}`;
 }
 
@@ -56,76 +98,54 @@ export async function resolverFlujo(userId, input, estado) {
   const opciones = flujo.opciones || [];
 
   let opcionElegida = input;
-
   if (opciones.length > 0) {
     const index = encontrarOpcionParecida(opciones, input);
     if (index === -1) {
-      await whatsappService.sendMessage(userId, "❌ Opción no válida. Intenta seleccionar desde el menú.");
-      return;
+      return whatsappService.sendMessage(userId, "❌ Opción no válida. Intenta seleccionar desde el menú.");
     }
     opcionElegida = opciones[index];
-    await whatsappService.sendMessage(userId, `✅ Has seleccionado: *${opcionElegida}*`);
-  } else {
-    await whatsappService.sendMessage(userId, `✅ Has escrito: *${opcionElegida}*`);
   }
 
-  if (flowRouter[flujo.step]) {
+  await whatsappService.sendMessage(userId, `✅ Has seleccionado: *${opcionElegida}*`);
+
+  if (await manejarReclamo(userId, opcionElegida)) return;
+
+  const claveRespuesta = normalizarClaveRespuesta(opcionElegida);
+  const respuesta = flujo[claveRespuesta];
+
+  if (respuesta) {
+    const mensajes = Array.isArray(respuesta) ? respuesta : [respuesta];
+    for (const mensaje of mensajes) {
+      await whatsappService.sendMessage(userId, mensaje);
+    }
+  } else if (flowRouter[flujo.step]) {
     await flowRouter[flujo.step](userId, opcionElegida, whatsappService);
   } else {
     await whatsappService.sendMessage(userId, "⚠️ Este flujo aún no está configurado.");
   }
 
-  await sendWelcomeMenu(userId);
-  await setEstado(userId, 'inicio', 'menu_principal');
+  await finalizarFlujo(userId);
 }
 
 export async function resolverSeleccionFlujo(userId, optionId, estado) {
   const flujo = estado?.flujo_actual;
   if (!flujo) {
-    await whatsappService.sendMessage(userId, "⚠️ No tengo contexto del flujo actual. Escribe *menu* para empezar de nuevo.");
-    return;
+    return whatsappService.sendMessage(userId, "⚠️ No tengo contexto del flujo actual. Escribe *menu* para empezar de nuevo.");
   }
 
-  const partes = optionId.split('_');
-  const index = parseInt(partes.at(-1));
-  const opciones = flujo.opciones || [];
-  const opcionElegida = opciones[index];
+  const index = parseInt(optionId.split('_').at(-1));
+  const opcionElegida = flujo.opciones?.[index];
 
-  if (!opcionElegida || typeof opcionElegida !== 'string') {
+  if (!opcionElegida) {
     console.warn(`⚠️ Opción inválida: index ${index} en flujo "${flujo.step}".`);
-    await whatsappService.sendMessage(userId, "❌ Hubo un problema con tu selección. Intenta nuevamente o escribe *menu*.");
-    return;
+    return whatsappService.sendMessage(userId, "❌ Hubo un problema con tu selección. Intenta nuevamente o escribe *menu*.");
   }
 
   await whatsappService.sendMessage(userId, `✅ Has seleccionado: *${opcionElegida}*`);
 
-  if (["Producto equivocado", "Producto dañado", "Pedido incompleto"].includes(opcionElegida)) {
-    if (opcionElegida === "Producto equivocado") {
-      await whatsappService.sendMessage(userId, "📦 Parece que recibiste un producto diferente al que pediste. Por favor compártenos una foto del producto recibido.");
-      await setEstado(userId, 'reclamo', 'esperando_foto_equivocado');
-    }
+  if (await manejarReclamo(userId, opcionElegida)) return;
 
-    if (opcionElegida === "Producto dañado") {
-      await whatsappService.sendMessage(userId, "😥 Vaya, recibiste un producto dañado. Por favor envíanos una foto o video.");
-      await setEstado(userId, 'reclamo', 'esperando_foto_danado');
-    }
-
-    if (opcionElegida === "Pedido incompleto") {
-      await whatsappService.sendMessage(userId, "📝 Indícanos qué producto faltó en tu pedido.");
-      await setEstado(userId, 'reclamo', 'esperando_texto_incompleto');
-    }
-
-    return;
-  }
-
-  const claveRespuesta = 'respuesta_' + opcionElegida
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]/gi, "_")
-    .replace(/_+/g, "_")
-    .replace(/^_|_$/g, "");
-
+  const claveRespuesta = normalizarClaveRespuesta(opcionElegida);
   const respuesta = flujo[claveRespuesta];
 
   if (respuesta) {
@@ -139,6 +159,5 @@ export async function resolverSeleccionFlujo(userId, optionId, estado) {
     await whatsappService.sendMessage(userId, "⚠️ Este flujo aún no tiene acción configurada.");
   }
 
-  await sendWelcomeMenu(userId);
-  await setEstado(userId, 'inicio', 'menu_principal');
+  await finalizarFlujo(userId);
 }

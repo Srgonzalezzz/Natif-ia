@@ -1,50 +1,69 @@
 // src/services/handlers/handleInteractiveMessage.js
-import stateStore from '../stateStore.js';
+import { getEstado } from '../../utils/stateManager.js';
 import {
-    handleAccionCarrito,
-    handleEliminarProducto,
-    handleProductoSeleccionado
+  handleAccionCarrito,
+  handleEliminarProducto,
+  handleProductoSeleccionado
 } from './carritoHandler.js';
 import {
-    handleMenuOption,
-    handleFeedbackButtons
+  handleMenuOption,
+  handleFeedbackButtons
 } from './menuHandler.js';
-import {
-    resolverSeleccionFlujo
-} from './flujoHandler.js';
+import { resolverSeleccionFlujo } from './flujoHandler.js';
 
 export default async function handleInteractiveMessage(message, senderInfo) {
-    const userId = message.from;
-    const estado = await stateStore.get(userId);
+  const userId = message.from;
+  const estado = await getEstado(userId);
 
-    const optionId = message.interactive?.button_reply?.id || message.interactive?.list_reply?.id;
-    const optionTitle = message.interactive?.button_reply?.title?.toLowerCase().trim() ||
-        message.interactive?.list_reply?.title?.toLowerCase().trim();
+  const optionId =
+    message.interactive?.button_reply?.id ||
+    message.interactive?.list_reply?.id;
 
-    if (optionId?.startsWith("flujo_")) {
-        await resolverSeleccionFlujo(userId, optionId, estado);
-        return;
-    }
+  const optionTitle =
+    message.interactive?.button_reply?.title?.toLowerCase().trim() ||
+    message.interactive?.list_reply?.title?.toLowerCase().trim();
 
-    if (["opcion_1", "opcion_2", "opcion_3"].includes(optionId)) {
-        return await handleMenuOption(userId, optionTitle);
-    }
+  // ----------------------
+  // 1) Flujos conversacionales
+  // ----------------------
+  if (optionId?.startsWith("flujo_")) {
+    return resolverSeleccionFlujo(userId, optionId, estado);
+  }
 
-    if (["si, gracias", "otra pregunta", "hablar con soporte"].includes(optionTitle)) {
-        return await handleFeedbackButtons(userId, optionTitle);
-    }
+  // ----------------------
+  // 2) Menú principal
+  // ----------------------
+  const menuOptions = ["opcion_1", "opcion_2", "opcion_3"];
+  if (menuOptions.includes(optionId)) {
+    return handleMenuOption(userId, optionTitle);
+  }
 
-    if (["seguir_comprando", "ver_carrito", "finalizar_compra"].includes(optionId)) {
-        return await handleAccionCarrito(optionId, userId, estado);
-    }
+  // ----------------------
+  // 3) Feedback post-respuesta
+  // ----------------------
+  const feedbackOptions = ["si, gracias", "otra pregunta", "hablar con soporte"];
+  if (feedbackOptions.includes(optionTitle)) {
+    return handleFeedbackButtons(userId, optionTitle);
+  }
 
-    if (optionId?.startsWith("eliminar_")) {
-        return await handleEliminarProducto(userId, optionId, estado);
-    }
+  // ----------------------
+  // 4) Acciones de carrito
+  // ----------------------
+  const carritoAcciones = ["seguir_comprando", "ver_carrito", "finalizar_compra"];
+  if (carritoAcciones.includes(optionId)) {
+    return handleAccionCarrito(optionId, userId, estado);
+  }
 
-    if (estado?.estado === 'carrito' && estado?.subestado === 'seleccionando_producto') {
-        return await handleProductoSeleccionado(userId, optionId, optionTitle, estado);
-    }
+  if (optionId?.startsWith("eliminar_")) {
+    return handleEliminarProducto(userId, optionId, estado);
+  }
 
-    return await handleMenuOption(userId, optionTitle);
+  if (estado?.estado === "carrito" && estado?.subestado === "seleccionando_producto") {
+    return handleProductoSeleccionado(userId, optionId, optionTitle, estado);
+  }
+
+  // ----------------------
+  // 5) Fallback → menú
+  // ----------------------
+  return handleMenuOption(userId, optionTitle);
 }

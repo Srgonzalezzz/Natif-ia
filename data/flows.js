@@ -125,30 +125,7 @@ const flujos = {
         respuesta_final: "Gracias. Tu factura será enviada en máximo 48 horas hábiles."
     },
 
-    // flujo_5: {
-    // intencion: "comprar",
-    // keywords: ["comprar", "precio", "cómo comprar", "dónde comprar"],
-    // nombre: "Estoy interesado en comprar",
-    // step: "interes_compra",
-    // pregunta: "¿Desde dónde nos escribes?",
-    // opciones: ["Colombia", "Otro país"]
-    // },
-
-    // flujo_6: {
-    // intencion: "factura_compra",
-    // keywords: ["métodos de pago", "tiempo de entrega", "envío", "promociones"],
-    // nombre: "Preguntas frecuentes de compra",
-    // step: "faq_compra",
-    // pregunta: "¿Qué deseas saber?",
-    // opciones: [
-    // "Métodos de pago",
-    // "Tiempos de entrega",
-    // "Costo de envío",
-    // "Envíos a todo el país",
-    // "Promociones activas"
-    // ]
-    // },
-
+  
     flujo_7: {
         intencion: "ingredientes",
         keywords: ["ingredientes",
@@ -267,26 +244,72 @@ const flujos = {
         opciones: []
     },
 
-    // reclamo: {
-    // intencion: "reclamo",
-    // keywords: [
-    // "reclamo",
-    // "queja",
-    // "problema",
-    // "inconformidad",
-    // "llegó mal",
-    // "no llegó",
-    // "equivocado",
-    // "producto malo",
-    // "defectuoso",
-    // "incompleto",
-    // "faltó",
-    // "reembolso",
-    // "devolución",
-    // "cambiar producto"
-    // ],
-    // pregunta: "¿Podrías contarnos más sobre tu reclamo para ayudarte mejor?"
-    // }
+    
+    flujo_11: {
+        nombre: "kinops",
+        intencion: "kinops",
+        keywords: [
+            'Que son los kinops',
+            'Que es kinops',
+            'Que hace kinops', 
+            'Para que sirve kinops',
+            'Beneficios de kinops',
+            'Ventajas de kinops',
+            'Propiedades de kinops',
+            'Ingredientes de kinops',
+            'Composición de kinops',
+            'Información nutricional de kinops',
+        ],
+        step: "kinops",
+        pregunta: "¿Que deseas con los kinops?",
+        opciones: ["Ingredientes", "Quiero comprar"]
+    },
+
+    
+    flujo_12: {
+        nombre: "gummis🧸❤️🍉",
+        intencion: "gummis",
+        keywords: [
+            'Que son gummis',
+            'Que es gummis',
+            'Que hace gummis', 
+            'Para que sirve gummis',
+            'Beneficios de gummis',
+            'Ventajas de gummis',
+            'Propiedades de gummis',
+            'Ingredientes de gummis',
+            'Composición de gummis',
+            'Información nutricional de gummis',
+            
+        ],
+        step: "gummis",
+        pregunta: "¿Que deseas saber de nuestras Gummis 🧸?",
+        opciones: ["Ingredientes", "Quiero comprar"]
+    },
+
+      flujo_13: {
+        nombre: "chocotabs ",
+        intencion: "Chocotabs",
+        keywords: [
+            'Que son chocotabs',
+            'Que es chocotabs',
+            'Que hace chocotabs',
+            'Para que sirve chocotabs',
+            'Beneficios de chocotabs',
+            'Ventajas de chocotabs',
+            'Propiedades de chocotabs',
+            'Ingredientes de chocotabs',
+            'Composición de chocotabs',
+            'Información nutricional de chocotabs',
+        ],
+        step: "Chocotabs",
+        pregunta: "¿Que son las chocotabs?",
+        opciones: ["Ingredientes", "Quiero comprar"]
+    },
+
+
+
+
 };
 
 export default flujos;
