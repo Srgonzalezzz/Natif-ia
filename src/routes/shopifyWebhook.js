@@ -1,101 +1,103 @@
-// src/routes/shopifyWebhook.js
 import express from "express";
 import crypto from "crypto";
-import whatsappService from "../services/whatsappService.js";
+import nodemailer from "nodemailer";
 
 const router = express.Router();
 
-/** Verifica HMAC con el cuerpo CRUDO (Buffer). */
+/** --- Utils --- **/
+function getRawBodyForHmac(req) {
+  if (Buffer.isBuffer(req.body)) return req.body;
+  if (typeof req.body === "string") return Buffer.from(req.body, "utf8");
+  return Buffer.from(JSON.stringify(req.body || {}), "utf8");
+}
+
 function verifyShopifyWebhook(req, secret) {
-  const hmacHeader = req.get("X-Shopify-Hmac-Sha256");
-  if (!secret || !hmacHeader) return {valid:false, hmacHeader, digest:null};
-
-  const digest = crypto
-    .createHmac("sha256", secret)
-    .update(req.body) // Buffer sin encodings extra
-    .digest("base64");
-
-  const sameLen =
-    Buffer.byteLength(hmacHeader) === Buffer.byteLength(digest);
-  const valid = sameLen && crypto.timingSafeEqual(
-    Buffer.from(hmacHeader),
-    Buffer.from(digest)
-  );
-
-  return {valid, hmacHeader, digest};
+  const hmacHeader = req.get("X-Shopify-Hmac-Sha256") || "";
+  if (!secret || !hmacHeader) return { valid: false };
+  const raw = getRawBodyForHmac(req);
+  const digest = crypto.createHmac("sha256", secret).update(raw).digest("base64");
+  const valid =
+    Buffer.byteLength(hmacHeader) === Buffer.byteLength(digest) &&
+    crypto.timingSafeEqual(Buffer.from(hmacHeader), Buffer.from(digest));
+  return { valid, digest, hmacHeader };
 }
 
-
-/** Normaliza teléfono → E.164 para WhatsApp Cloud (sin '+'). */
-function normalizarTelefono(rawPhone) {
-  if (!rawPhone) return null;
-  let phone = String(rawPhone).trim().replace(/\s+/g, "");
-  phone = phone.replace(/[^\d+]/g, "");
-  if (phone.startsWith("0")) phone = "+57" + phone.slice(1);
-  if (!phone.startsWith("+")) phone = "+57" + phone;
-  // Cloud API suele esperar sin '+'
-  return phone.replace(/^\+/, "");
+async function sendEmail({ to, subject, text }) {
+  if (!to) return;
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+  await transporter.sendMail({ from: process.env.SMTP_USER, to, subject, text });
+  console.log(`📧 Email enviado a ${to}: ${subject}`);
 }
 
-/** Fulfillment: pedido empacado / despachado (ej: fulfillments/create). */
-router.post("/order-fulfilled", async (req, res) => {
-  // 👈 NO uses express.json() aquí; ya tenemos raw a nivel de app
-  if (!verifyShopifyWebhook(req, process.env.SHOPIFY_SECRET)) {
-    console.warn("Webhook fulfillment con HMAC inválido");
-    return res.status(401).send("Unauthorized");
-  }
+function obtenerCorreo(order) {
+  return order?.contact_email || order?.email || order?.customer?.email || "";
+}
 
-  res.sendStatus(200); // responde rápido a Shopify
-
-  try {
-    const data = JSON.parse(req.body.toString("utf8"));
-    console.log("📦 Webhook fulfillment:", JSON.stringify(data, null, 2));
-
-    const orderId = data?.order_number || data?.id;
-    const status = data?.fulfillment_status;
-    const customer = data?.customer;
-
-    if (
-      status === "fulfilled" ||
-      String(status || "").toLowerCase() === "preparado"
-    ) {
-      const numeroCliente = normalizarTelefono(
-        customer?.phone || customer?.default_address?.phone
-      );
-      if (numeroCliente) {
-        await whatsappService.sendMessage(
-          numeroCliente,
-          `🩷¡Hola, ${customer?.first_name || ""} te hablamos de NATIF🍫, es un placer saludarte el dia de hoy.🤎! \n Te queremos informar que tu pedido con numero de orden #${orderId} fue despachado y estará en camino muy pronto 🙌`
-        );
-      } else {
-        console.warn("No hay teléfono para cliente en fulfillment webhook");
-      }
-    }
-  } catch (err) {
-    console.error("Error procesando fulfillment webhook:", err);
-  }
-});
-
-/** Order updated: guía creada / tracking actualizado (ej: orders/updated). */
-router.post("/order-updated", async (req, res) => {
-  const {valid, hmacHeader, digest} = verifyShopifyWebhook(req, process.env.SHOPIFY_SECRET);
-
-  if (!valid) {
-    console.warn("Webhook tracking con HMAC inválido");
-    console.log('HMAC recibido:', hmacHeader);
-    console.log('HMAC calculado:', digest);
-    return res.status(401).send("Unauthorized");
-  }
-
+/** --- Webhook fulfillments --- **/
+router.post("/fulfillments-update", async (req, res) => {
+  const { valid } = verifyShopifyWebhook(req, process.env.SHOPIFY_SECRET);
+  if (!valid) return res.status(401).send("Unauthorized");
   res.sendStatus(200);
 
   try {
-    const data = JSON.parse(req.body.toString("utf8"));
-    // ...
+    const order = JSON.parse(getRawBodyForHmac(req).toString("utf8"));
+    console.log("🚚 fulfillments/update:", order.name);
+
+    const correoCliente = obtenerCorreo(order);
+    const orderLabel = order?.name || order?.order_number;
+
+    for (const fulfillment of order.fulfillments || []) {
+      const guia =
+        fulfillment?.tracking_number || fulfillment?.tracking_numbers?.[0] || "";
+      const link =
+        fulfillment?.tracking_url || fulfillment?.tracking_urls?.[0] || "";
+      const empresa = fulfillment?.tracking_company || "Transportadora";
+      const status = fulfillment?.status || "";
+
+      // Caso 1: Guía creada
+      if (guia) {
+        await sendEmail({
+          to: correoCliente,
+          subject: `Tu pedido ${orderLabel} ya está en camino`,
+          text: `🚚 ¡Tu pedido con orden ${orderLabel} ya está en camino!\n\n📦 Guía: ${guia}\n🏢 Transportadora: ${empresa}\n🔗 Rastreo: ${link}\n\n¡Gracias por tu compra! 🍫 COMER SANO NUNCA FUE TAN RICO 🤎🩷`,
+        });
+      }
+      // Caso 2: Cancelado
+      else if (status === "cancelled") {
+        await sendEmail({
+          to: correoCliente,
+          subject: `Tu pedido ${orderLabel} ha sido cancelado`,
+          text: `⚠️ Lamentamos informarte que tu pedido con número ${orderLabel} ha sido **cancelado**. Si tienes dudas contáctanos.`,
+        });
+      }
+      // Caso 3: Preparado/Despachado sin guía
+      else if (status === "success" || status === "fulfilled") {
+        await sendEmail({
+          to: correoCliente,
+          subject: `Tu pedido ${orderLabel} fue preparado y despachado`,
+          text: `🩷 ¡Hola! Tu pedido con número de orden ${orderLabel} ya fue **preparado y pronto se hara tu guia de despacho** 🚀.\nPronto te enviaremos la guía para rastrearlo 🙌`,
+        });
+      }
+      // Caso 4: En proceso
+      else if (status === "pending" || status === "in_progress") {
+        await sendEmail({
+          to: correoCliente,
+          subject: `Tu pedido ${orderLabel} está en preparación`,
+          text: `🔄 Tu pedido con número ${orderLabel} se encuentra actualmente **en preparación**. Te notificaremos cuando esté despachado 🚀`,
+        });
+      } else {
+        console.log(`Fulfillment ${fulfillment.name} con estado ${status} sin email`);
+      }
+    }
   } catch (err) {
-    console.error("Error procesando order update webhook:", err);
+    console.error("Error procesando fulfillments/update:", err);
   }
 });
-
 
 export default router;
