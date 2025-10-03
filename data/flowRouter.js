@@ -43,8 +43,8 @@ const flowRouter = {
 
   chocotabs: async (userId, opcion, whatsappService) => {
     const respuestas = {
-      "ingredientes": "Sabores y colores 100 % naturales, endulzadas con alulosa y eritritol, bajo índice glucémico (apto para diabéticos), libres de gluten, sin colorantes ni saborizantes artificiales, vida útil de ~1 año, 50 g por empaque. Nota: Están en proceso de cambio a presentación de 35 g",
-      "quiero comprar": "Puedes comprar en nuestra tienda online https://www.natifbyissavasquez.com/collections/gummis"
+      "ingredientes": "Cacao (masa de cacao, manteca de cacao), Maní, Endulzante: Alulosa y extracto de Monk Fruit, Proteína de arroz, Emulsificante: lecitina de soya, Sabor vainilla de 35g",
+      "quiero comprar": "Puedes comprar en nuestra tienda online https://www.natifbyissavasquez.com/collections/chocotabs"
     };
 
     const key = normalizar(opcion);
@@ -53,14 +53,25 @@ const flowRouter = {
     return { tipo: "texto", contenido: respuesta };
   },
 
-  // Preguntas frecuentes de compra
-  faq_compra: async (userId, opcion, whatsappService) => {
+  pan: async (userId, opcion, whatsappService) => {
     const respuestas = {
-      "metodos de pago": "🏦 Puedes pagar por Bancolombia, Nequi, tarjeta o contraentrega.",
-      "tiempos de entrega": "🚚 Entregamos entre *5 a 7 días hábiles*.",
-      "costo de envio": "📦 El costo de envío depende de tu ciudad.",
-      "envios a todo el pais": "📍 Sí, hacemos envíos a toda Colombia 🇨🇴",
-      "promociones activas": "🎉 Consulta nuestras promos en https://natif.com/promos"
+      "kinops": "Puedes comprar en nuestra tienda online https://www.natifbyissavasquez.com/collections/kinops",
+      "gummis": "Puedes comprar en nuestra tienda online https://www.natifbyissavasquez.com/collections/gummis",
+      "chocotabs": "Puedes comprar en nuestra tienda online https://www.natifbyissavasquez.com/pages/chocotabs"
+
+    };
+
+    const key = normalizar(opcion);
+    const respuesta = respuestas[key] || "Lo siento, no entiendo tu pregunta. Vuelve a intentarlo.";
+    await whatsappService.sendMessage(userId, respuesta);
+    return { tipo: "texto", contenido: respuesta };
+  },
+
+  quiero_ser_distribuidor: async (userId, opcion, whatsappService) => {
+    const respuestas = {
+      "distribuidor": "🏪 Gracias por tu interés. Por favor indícanos:\n- Nombre del negocio\n- Ciudad\n- Tipo de punto de venta\n- Email de contacto\n Para mejor atencion enviarlo a info@natifbyissavasquez.com",
+      "influencer": "📲 ¡Genial! Por favor cuéntanos:\n- Red social\n- Ciudad\n- Tipo de contenido\n- Número de seguidores, para mejor atencion enviarlo a info@natifbyissavasquez.com",
+      "colaboracion": " 🤝 ¡Excelente! Cuéntanos qué tipo de colaboración te gustaría proponer, para mejor atencion enviarlo a info@natifbyissavasquez.com"
     };
 
     const key = normalizar(opcion);
@@ -72,7 +83,21 @@ const flowRouter = {
     await setEstado(userId, 'flujo', 'faq_compra', { ultimaPregunta: opcion });
 
     return { tipo: "texto", contenido: respuesta };
+
   },
+
+  // pan: async (userId, opcion, whatsappService) => {
+  //   const respuestas = {
+  //     "kinops": "https://www.natifbyissavasquez.com/collections/kinops",
+  //     "gummis": "https://www.natifbyissavasquez.com/collections/gummis",
+  //     "chocotabs": "https://www.natifbyissavasquez.com/collections/chocotabs"
+  //   };
+
+  //   const key = normalizar(opcion);
+  //   const respuesta = respuestas[key] || "Lo siento, no entiendo tu pregunta. Vuelve a intentarlo.";
+  //   await whatsappService.sendMessage(userId, respuesta);
+  //   return { tipo: "texto", contenido: respuesta };
+  // },
 
   ingredientes: async (userId, opcion, whatsappService) => {
     const respuestas = {
@@ -80,33 +105,6 @@ const flowRouter = {
       "es sin azucar": "✅ Sí, nuestros productos son 100% sin azúcar añadida.",
       "tiene gluten o lactosa": "🚫 Nuestros productos no contienen gluten ni lactosa.",
       "apto para diabeticos": "🩺 Sí, están diseñados especialmente para personas con diabetes y estilos de vida saludables."
-    };
-
-    const key = normalizar(opcion);
-    const respuesta = respuestas[key] || "Lo siento, no entiendo tu pregunta. Vuelve a intentarlo.";
-    await whatsappService.sendMessage(userId, respuesta);
-    return { tipo: "texto", contenido: respuesta };
-  },
-
-  resenas: async (userId, opcion, whatsappService) => {
-    const respuestas = {
-      "resena publica": "📝 Puedes dejar tu reseña en este enlace: https://natif.com/resenas",
-      "comentario privado": "🗣️ Cuéntanos cómo fue tu experiencia. Nos interesa mucho tu opinión para mejorar 💬",
-      "ambas": "🙌 Perfecto. Puedes dejar tu reseña pública aquí: https://natif.com/resenas y también contarnos tu experiencia por este medio."
-    };
-
-    const key = normalizar(opcion);
-    const respuesta = respuestas[key] || "Lo siento, no entiendo tu pregunta. Vuelve a intentarlo.";
-    await whatsappService.sendMessage(userId, respuesta);
-    return { tipo: "texto", contenido: respuesta };
-  },
-
-  // Alianzas
-  alianzas: async (userId, opcion, whatsappService) => {
-    const respuestas = {
-      "influencer": "📲 ¡Genial! Por favor cuéntanos:\n- Red social\n- Ciudad\n- Tipo de contenido\n- Número de seguidores",
-      "distribuidor": "🏪 Gracias por tu interés. Por favor indícanos:\n- Nombre del negocio\n- Ciudad\n- Tipo de punto de venta\n- Email de contacto",
-      "otra alianza": "🤝 ¡Excelente! Cuéntanos qué tipo de colaboración te gustaría proponer."
     };
 
     const key = normalizar(opcion);

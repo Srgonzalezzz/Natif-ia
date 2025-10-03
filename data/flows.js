@@ -42,7 +42,7 @@ const flujos = {
         ],
         nombre: "Me llegó mal el pedido",
         step: "reporte_pedido_mal",
-        pregunta: "Lamentamos lo ocurrido. ¿Qué ocurrió exactamente?",
+        pregunta: "Queremos ofrecerte una disculpa por el inconveniente presentado con nuestros productos😞.",
         opciones: ["Producto equivocado", "Producto dañado", "Producto incompleto"]
     },
 
@@ -125,7 +125,7 @@ const flujos = {
         respuesta_final: "Gracias. Tu factura será enviada en máximo 48 horas hábiles."
     },
 
-  
+
     flujo_7: {
         intencion: "ingredientes",
         keywords: ["ingredientes",
@@ -184,33 +184,37 @@ const flujos = {
         opciones: ["Reseña pública", "Comentario privado", "Ambas"]
     },
 
-    flujo_10: {
-        intencion: "alianza",
-        keywords: ["influencer",
-            "distribuidor",
-            "colaboración",
-            "alianza",
-            "asociación",
-            "partnership",
-            "trabajar juntos",
-            "oportunidad de negocio",
-            "propuesta de colaboración",
-            "propuesta de alianza",
-            "propuesta de asociación",
-            "marketing de influencers",
-            "marketing de distribuidores",
-            "programa de afiliados"
-        ],
-        nombre: "Alianzas, influenciadores, distribuidores",
-        step: "alianzas",
-        pregunta: "¿Qué tipo de colaboración tienes en mente?",
-        opciones: ["Influencer", "Distribuidor", "Otra alianza"]
-    },
+    // flujo_10: {
+    //     intencion: "alianza",
+    //     keywords: ["influencer",
+    //         "distribuidor",
+    //         "colaboración",
+    //         "alianza",
+    //         "asociación",
+    //         "partnership",
+    //         "trabajar juntos",
+    //         "oportunidad de negocio",
+    //         "propuesta de colaboración",
+    //         "propuesta de alianza",
+    //         "propuesta de asociación",
+    //         "marketing de influencers",
+    //         "marketing de distribuidores",
+    //         "programa de afiliados"
+    //     ],
+    //     nombre: "Alianzas, influenciadores, distribuidores",
+    //     step: "alianzas",
+    //     pregunta: "¿Qué tipo de colaboración tienes en mente?",
+    //     opciones: ["Influencer", "Distribuidor", "Otra alianza"]
+    // },
 
     puntos_venta: {
         nombre: "Puntos de Venta",
         intencion: "puntos_venta",
         keywords: [
+            "quiero comprar",
+            "donde comprar",
+            "donde venden",
+            "donde los venden",
             "puntos de venta",
             "donde puedo comprar kinops",
             "donde estan ubicados",
@@ -237,21 +241,22 @@ const flujos = {
             "dónde comprar kinops",
             "dónde están ubicados los puntos de venta",
             "ubicación de tiendas kinops",
-            "localización de puntos de venta kinops"
+            "localización de puntos de venta kinops",
+            "Donde puedo conseguir los productos de natif",
         ],
         step: "puntos_venta",
         pregunta: "¿En qué ciudad estás buscando nuestros puntos de venta?",
         opciones: []
     },
 
-    
+
     flujo_11: {
         nombre: "kinops",
         intencion: "kinops",
         keywords: [
             'Que son los kinops',
             'Que es kinops',
-            'Que hace kinops', 
+            'Que hace kinops',
             'Para que sirve kinops',
             'Beneficios de kinops',
             'Ventajas de kinops',
@@ -259,20 +264,26 @@ const flujos = {
             'Ingredientes de kinops',
             'Composición de kinops',
             'Información nutricional de kinops',
+            "quiero comprar kinops",
+            "kinops"
         ],
         step: "kinops",
         pregunta: "¿Que deseas con los kinops?",
         opciones: ["Ingredientes", "Quiero comprar"]
     },
 
-    
+
     flujo_12: {
         nombre: "gummis🧸❤️🍉",
         intencion: "gummis",
         keywords: [
+            'gummis',
+            'gomas',
+            'gomitas',
+            'ositos',
             'Que son gummis',
             'Que es gummis',
-            'Que hace gummis', 
+            'Que hace gummis',
             'Para que sirve gummis',
             'Beneficios de gummis',
             'Ventajas de gummis',
@@ -280,17 +291,26 @@ const flujos = {
             'Ingredientes de gummis',
             'Composición de gummis',
             'Información nutricional de gummis',
-            
+            'quiero comprar gummis',
+            'quiero comprar gomitas',
+            'quiero comprar gomas',
+            'quiero comprar ositos'
         ],
         step: "gummis",
         pregunta: "¿Que deseas saber de nuestras Gummis 🧸?",
         opciones: ["Ingredientes", "Quiero comprar"]
     },
 
-      flujo_13: {
+    flujo_13: {
         nombre: "chocotabs ",
         intencion: "Chocotabs",
         keywords: [
+            'chocotabs',
+            'chocolates',
+            'tabletas',
+            'Que son las chocotabs',
+            'quiero comprar chocotabs',
+            'quiero comprar chocolate',
             'Que son chocotabs',
             'Que es chocotabs',
             'Que hace chocotabs',
@@ -301,11 +321,86 @@ const flujos = {
             'Ingredientes de chocotabs',
             'Composición de chocotabs',
             'Información nutricional de chocotabs',
+            'quiero comprar chocotabs',
+            'chocolatinas',
+            'quiero las chocolatinas',
+            'tabletas de chocolate',
+            'quiero las tabletas de chocolate'
         ],
-        step: "Chocotabs",
+        step: "chocotabs",
         pregunta: "¿Que son las chocotabs?",
         opciones: ["Ingredientes", "Quiero comprar"]
     },
+
+    flujo_14: {
+        nombre: "quiero ser distribuidor",
+        intencion: "quiero ser distribuidor",
+        keywords: [
+            'Quiero ser distribuidor',
+            'Como ser distribuidor',
+            'Distribuidor',
+            'Distribuidores',
+            'Ser distribuidor',
+            'Distribuir productos',
+            'Vender productos',
+            'Oportunidad de negocio',
+            'Propuesta de distribución',
+            'Negocio de distribución',
+            'Red de distribuidores',
+            'Canal de distribución',
+            'Venta al por mayor',
+            'Venta mayorista',
+            'Venta al detal',
+            'Venta minorista',
+            'Punto de venta',
+            'Puntos de venta',
+            'Tiendas',
+            'Supermercados',
+            'Farmacias',
+            'Almacenes',
+            'Comercios',
+            'Negocios',
+            'Emprendimiento',
+            'Emprender',
+            'Oportunidad de emprendimiento',
+            'Propuesta de negocio',
+            'Propuesta comercial',
+            'Contacto para distribuidores',
+            'Información para distribuidores',
+            'Requisitos para ser distribuidor',
+            'Beneficios de ser distribuidor',
+            'Cómo funciona la distribución',
+            'Proceso para ser distribuidor',
+            'Pasos para ser distribuidor'
+        ],
+        step: "quiero_ser_distribuidor",
+        pregunta: "Que tipo de alianza deseas?",
+        opciones: ["Distribuidor", "Influencer", "Colaboracion"]
+    },
+
+    flujo_15: {
+        nombre: "pan",
+        intencion: "pan",
+        keywords: [
+            'aun venden pan',
+            'tienen pan',
+            'volvio el pan',
+            'porque dejaron de vender el pan',
+            'donde conseguir el pan',
+            'cuando vuelven a vender el pan',
+            'cuando vuelve el pan',
+            'cuando vuelve a estar el pan',
+            'cuando vuelve a estar disponible el pan',
+            'cuando vuelve a estar en stock el pan',
+            'cuando vuelve a estar en inventario el pan',
+            'cuando vuelve a estar en existencia el pan'
+        ],
+        step: "pan",
+        pregunta: "Informamos que el pan está fuera de nuestro catalogo, pero tenemos una gran variedad de nuevos productos. ¿Quieres conocerlos?",
+        opciones: ["Kinops", "Gummis", "Chocotabs"]
+    },
+
+
 
 
 

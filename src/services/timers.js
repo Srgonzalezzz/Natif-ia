@@ -31,7 +31,7 @@ export function setInactivityTimers(
       await whatsappService.sendInteractiveButtons(userId, "¿Mi respuesta fue de ayuda?", [
         { type: 'reply', reply: { id: 'option_4', title: "Sí, gracias" } },
         { type: 'reply', reply: { id: 'option_5', title: "Otra pregunta" } },
-        { type: 'reply', reply: { id: 'option_6', title: "Hablar con soporte" } },
+        // { type: 'reply', reply: { id: 'option_6', title: "Hablar con soporte" } },
       ]);
     } catch (err) {
       console.warn("⚠️ warningTimer error:", err?.message || err);

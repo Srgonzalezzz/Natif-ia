@@ -1,4 +1,3 @@
-// src/services/soporteHandler.js
 import whatsappService from '../whatsappService.js';
 import { guardarReclamoEnSheet } from '../../utils/googleOAuthLogger.js';
 import { deleteEstado } from '../../utils/stateManager.js';
@@ -21,40 +20,21 @@ export async function escalarReclamo({
   supervisor = DEFAULT_SUPERVISOR,
   guardarEnSheet = true
 }) {
-  const nombreCliente = senderInfo?.profile?.name || senderInfo?.name || "Cliente";
-
-  const plantilla = {
-    name: "reclamo_detectado",
-    languageCode: "es",
-    parameters: [
-      { type: "text", text: nombreCliente },
-      { type: "text", text: mensaje },
-      { type: "text", text: userId }
-    ]
-  };
+  // si no hay nombre, usar el del perfil de whatsapp o el número
+  const nombreCliente = senderInfo?.profile?.name || senderInfo?.name || userId;
 
   try {
-    // Notificación al supervisor con plantilla
-    await whatsappService.sendTemplateMessage(
-      supervisor,
-      plantilla.name,
-      plantilla.languageCode,
-      [{ type: "body", parameters: plantilla.parameters }]
-    );
+    // 🔹 Notificación al supervisor como mensaje normal (NO plantilla Meta)
+    const textoSupervisor = `📢 Reclamo recibido:\n\n👤 Cliente: *${nombreCliente}*\n📞 WhatsApp: ${userId}\n✉️ Reclamo: ${mensaje}`;
+    await whatsappService.sendMessage(supervisor, textoSupervisor);
 
-    // Mensaje adicional al supervisor
-    await whatsappService.sendMessage(
-      supervisor,
-      `📢 Reclamo recibido:\n\n👤 Cliente: *${nombreCliente}*\n📞 WhatsApp: ${userId}\n✉️ Reclamo: ${mensaje}`
-    );
-
-    // Confirmación al cliente
+    // 🔹 Confirmación al cliente
     await whatsappService.sendMessage(
       userId,
       "✅ Hemos recibido tu mensaje. Un asesor de NATIF se comunicará contigo muy pronto 🙏"
     );
 
-    // Guardar en Google Sheet si aplica
+    // 🔹 Guardar en Google Sheet si aplica
     if (guardarEnSheet) {
       await guardarReclamoEnSheet({
         fecha: new Date().toISOString(),
@@ -65,12 +45,12 @@ export async function escalarReclamo({
       });
     }
 
-    // Reset de estado del cliente
+    // 🔹 Reset de estado del cliente
     await deleteEstado(userId);
 
     return true;
   } catch (error) {
-    console.error("❌ Error en soporteHandler.manejarReclamo:", error?.response?.data || error.message);
+    console.error("❌ Error en soporteHandler.escalarReclamo:", error?.response?.data || error.message);
     await whatsappService.sendMessage(
       userId,
       "Hubo un error al contactar al equipo de soporte 😔. Intenta de nuevo más tarde."

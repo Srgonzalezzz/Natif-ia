@@ -6,8 +6,7 @@ import Fuse from "fuse.js";
 const dataPath = path.resolve("./data");
 
 async function extraerTextoDePDF(filePath) {
-  try {
-    const dataBuffer = await fs.readFile(filePath);
+  try {    const dataBuffer = await fs.readFile(filePath);
     const data = await pdf(dataBuffer);
     return data.text;
   } catch (err) {

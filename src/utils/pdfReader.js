@@ -47,7 +47,7 @@ export async function indexPDFs(force = false) {
     fuse = new Fuse(fragments, {
       keys: ['contenido'],
       includeScore: true,
-      threshold: 0.35,
+      threshold: 0.3,
       ignoreLocation: true,
       minMatchCharLength: 4
     });

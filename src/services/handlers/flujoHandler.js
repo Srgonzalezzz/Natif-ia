@@ -106,7 +106,7 @@ export async function resolverFlujo(userId, input, estado) {
     opcionElegida = opciones[index];
   }
 
-  await whatsappService.sendMessage(userId, `✅ Has seleccionado: *${opcionElegida}*`);
+  // await whatsappService.sendMessage(userId, `✅ Has seleccionado: *${opcionElegida}*`);
 
   if (await manejarReclamo(userId, opcionElegida)) return;
 
@@ -141,7 +141,7 @@ export async function resolverSeleccionFlujo(userId, optionId, estado) {
     return whatsappService.sendMessage(userId, "❌ Hubo un problema con tu selección. Intenta nuevamente o escribe *menu*.");
   }
 
-  await whatsappService.sendMessage(userId, `✅ Has seleccionado: *${opcionElegida}*`);
+  // await whatsappService.sendMessage(userId, `✅ Has seleccionado: *${opcionElegida}*`);
 
   if (await manejarReclamo(userId, opcionElegida)) return;
 

@@ -23,7 +23,7 @@ export async function handleTrackingQuery(trackingRaw, userId) {
   // validar guía alfanumérica
   const tracking = raw.replace(/\s+/g, '').toUpperCase();
   if (!/^[A-Z0-9\-]{6,30}$/.test(tracking)) {
-    return await whatsappService.sendMessage(userId, "⚠️ No parece un número de orden o guía válido. ¿Quieres intentar con tu número de orden (#3030) o con el número de guía de la transportadora?");
+    return await whatsappService.sendMessage(userId, "⚠️ No parece un número de orden o guía válido. ¿Quieres intentar con tu número de orden (#3030), con el número de guía de la transportadora o tu correo electronico?");
   }
 
   const resultado = await buscarPedido(tracking);
@@ -31,7 +31,7 @@ export async function handleTrackingQuery(trackingRaw, userId) {
   if (resultado) {
     await whatsappService.sendMessage(userId, `📦 Tu pedido *${resultado.pedido}* está *${resultado.estado || 'sin actualizar'}* con *${resultado.empresa_envio || 'transportadora no especificada'}*.\n\nNúmero de guía: *${resultado.tracking}*\n🔗 Rastreo: ${resultado.link || 'No disponible'}\n💼 Productos: ${resultado.productos?.join(', ') || 'N/A'}\n📧 Cliente: ${resultado.cliente || 'N/A'}`);
   } else {
-    await whatsappService.sendMessage(userId, "No encontré ningún pedido con ese número de guía 😔. Por favor verifica que esté correcto o intenta con tu número de orden (#3030).");
+    await whatsappService.sendMessage(userId, "No encontré ningún pedido con ese número de guía 😔. Por favor verifica que esté correcto o intenta con tu número de orden (#3030) o tu correo electronico de shopify.");
   }
 
   await setEstado(userId, 'inicio', 'menu_principal');

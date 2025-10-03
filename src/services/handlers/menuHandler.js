@@ -11,7 +11,7 @@ export async function sendWelcomeMessage(to, senderInfo) {
   const name = senderInfo?.profile?.name || senderInfo?.wa_id || "Cliente";
   await whatsappService.sendMessage(
     to,
-    `🌟 ¡Hola ${name}! Soy Nati🩷, de Natif. \nEstoy aquí para ayudarte con tus pedidos, compras o cualquier duda que tengas 😊`
+    `🍫¡Hola ${name}.\n Bienvenid@ es un gusto saludarte! Soy Nati🩷\n estoy aquí para asistirte con tus compras, pedidos o cualquier \n inquietud que tengas. ¡Con gusto te ayudaré! 😊`
   );
 }
 
@@ -19,9 +19,9 @@ export async function sendWelcomeMenu(to) {
   const buttons = [
     { type: 'reply', reply: { id: 'opcion_1', title: 'ESTADO PEDIDO' } },
     { type: 'reply', reply: { id: 'opcion_2', title: 'QUEJA Y RECLAMO' } },
-    { type: 'reply', reply: { id: 'opcion_3', title: 'PREGUNTAS FRECUENTES' } }
+    // { type: 'reply', reply: { id: 'opcion_3', title: 'PREGUNTAS FRECUENTES' } }
   ];
-  await whatsappService.sendInteractiveButtons(to, "¿Cómo más puedo ayudarte el día de hoy?", buttons);
+  await whatsappService.sendInteractiveButtons(to, "Selecciona la opción en la que puedo ayudarte🤗", buttons);
 }
 
 // ----------------------
@@ -32,19 +32,19 @@ export async function handleMenuOption(userId, option) {
 
   if (lowerOpt.includes('estado') || lowerOpt.includes('pedido')) {
     await setEstado(userId, 'seguimiento', 'esperando_guia');
-    return whatsappService.sendMessage(userId, 'Por favor, envíame tu número de guía para rastrear tu pedido 📦');
+    return whatsappService.sendMessage(userId, 'Por favor, envíame tu número de guía o numero de orden para rastrear tu pedido 📦');
   }
 
   if (lowerOpt.includes('queja') || lowerOpt.includes('reclamo')) {
     await setEstado(userId, 'quejas_reclamos', 'esperando_detalle');
-    return whatsappService.sendMessage(userId, '📝 Por favor cuéntame en un solo mensaje lo que pasó para poder redirigir tu caso a un asesor calificado a tu situación.');
+    return whatsappService.sendMessage(userId, '📝 Por favor cuéntame en un solo mensaje la situación que se presento para poder redirigir tu caso a un asesor del área especializada.');
   }
 
-  if (lowerOpt.includes('pregunta') || lowerOpt.includes('frecuente')) {
-    await setEstado(userId, 'ia', 'esperando_pregunta');
-    setInactivityTimers(userId);
-    return whatsappService.sendMessage(userId, 'Genial! Soy la IA NATIF y estoy aquí para ayudarte 🤖');
-  }
+  // if (lowerOpt.includes('pregunta') || lowerOpt.includes('frecuente')) {
+  //   await setEstado(userId, 'ia', 'esperando_pregunta');
+  //   setInactivityTimers(userId);
+  //   return whatsappService.sendMessage(userId, 'Genial! Soy la IA NATIF y estoy aquí para ayudarte 🤖');
+  // }
 
   return whatsappService.sendMessage(userId, 'Lo siento, tu mensaje no fue claro');
 }
@@ -59,14 +59,14 @@ export async function handleFeedbackButtons(userId, option) {
   const acciones = {
     'si, gracias': async () => cerrarChat(userId),
     'otra pregunta': async () => {
-      await whatsappService.sendMessage(userId, '¡Perfecto! Puedes escribirme tu siguiente inquietud.');
+      await whatsappService.sendMessage(userId, '¡Perfecto! Cuentame en que mas peudo ayudarte el dia de hoy🩷🍫.');
       await setEstado(userId, 'ia', 'esperando_pregunta');
-    },
-    'hablar con soporte': async () => {
-      await whatsappService.sendMessage(userId, 'Conectándote con nuestro equipo de soporte humano… Un momento por favor 👩‍💻');
-      await whatsappService.sendMessage(soporte, `📞 El cliente ${userId} solicitó soporte humano.`);
-      await deleteEstado(userId);
     }
+    // 'hablar con soporte': async () => {
+    //   await whatsappService.sendMessage(userId, 'Conectándote con nuestro equipo de soporte humano… Un momento por favor 👩‍💻');
+    //   await whatsappService.sendMessage(soporte, `📞 El cliente ${userId} solicitó soporte humano.`);
+    //   await deleteEstado(userId);
+    // }
   };
 
   if (acciones[lowerOpt]) {

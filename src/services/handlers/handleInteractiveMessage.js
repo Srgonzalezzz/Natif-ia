@@ -33,7 +33,7 @@ export default async function handleInteractiveMessage(message, senderInfo) {
   // ----------------------
   // 2) Menú principal
   // ----------------------
-  const menuOptions = ["opcion_1", "opcion_2", "opcion_3"];
+  const menuOptions = ["opcion_1", "opcion_2"];
   if (menuOptions.includes(optionId)) {
     return handleMenuOption(userId, optionTitle);
   }
@@ -41,7 +41,7 @@ export default async function handleInteractiveMessage(message, senderInfo) {
   // ----------------------
   // 3) Feedback post-respuesta
   // ----------------------
-  const feedbackOptions = ["si, gracias", "otra pregunta", "hablar con soporte"];
+  const feedbackOptions = ["si, gracias", "otra pregunta"];
   if (feedbackOptions.includes(optionTitle)) {
     return handleFeedbackButtons(userId, optionTitle);
   }

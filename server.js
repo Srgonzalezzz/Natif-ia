@@ -1,6 +1,7 @@
 import express from "express";
 import axios from "axios";
 import 'dotenv/config';
+import messageHandler from './src/services/messageHandler.js'; // ajusta ruta según tu proyecto
 
 const app = express();
 app.use(express.json());
@@ -30,52 +31,25 @@ app.post("/webhook", authMiddleware, async (req, res) => {
   const message = value?.messages?.[0];
 
   if (message) {
-    const senderPhoneNumber = message.from;
-    const messageId = message.id;
-    const messageText = message.text?.body || "Sin texto";
+    const senderInfo = {
+      nombre: value?.contacts?.[0]?.profile?.name || '',
+      numero: message.from,
+      profile: value?.contacts?.[0]?.profile || {}
+    };
 
     try {
-      // Responder con un mensaje automático
-      await axios.post(
-        `https://graph.facebook.com/${API_VERSION}/${business_phone}/messages`,
-        {
-          messaging_product: "whatsapp",
-          to: senderPhoneNumber,
-          text: { body: `👋 Hola! Recibí tu mensaje: "${messageText}" 🚀` },
-          context: { message_id: messageId }
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${API_TOKEN}`,
-            "Content-Type": "application/json"
-          }
-        }
-      );
+      // 👇 Aquí delegas la lógica a tu IA
+      await messageHandler.handleIncomingMessage(message, senderInfo);
 
-      // Marcar como leído
-      await axios.post(
-        `https://graph.facebook.com/${API_VERSION}/${business_phone}/messages`,
-        {
-          messaging_product: "whatsapp",
-          status: "read",
-          message_id: messageId,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${API_TOKEN}`,
-            "Content-Type": "application/json"
-          }
-        }
-      );
-
-      console.log(`✅ Respondí a ${senderPhoneNumber}`);
+      console.log(`✅ Procesado por IA para ${senderInfo.numero}`);
     } catch (error) {
-      console.error("❌ Error enviando mensaje:", error.response?.data || error.message);
+      console.error("❌ Error en MessageHandler:", error.message);
     }
   }
 
   res.sendStatus(200);
 });
+
 
 // 👉 Verificación inicial con Meta
 app.get("/webhook", (req, res) => {

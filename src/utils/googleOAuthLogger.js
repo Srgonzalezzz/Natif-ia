@@ -15,13 +15,15 @@ const SHEETS = {
 };
 
 // --- AUTORIZACIÓN ---
-async function authorize() {
+// utils/googleOAuthLogger.js
+// --- AUTORIZACIÓN ---
+export async function authorize() {   // 👈 aquí va el export
   const credentials = JSON.parse(await fs.readFile(CREDENTIALS_PATH, "utf8"));
   const { client_id, client_secret, redirect_uris } = credentials.installed;
   const oAuth2Client = new google.auth.OAuth2(
     client_id,
     client_secret,
-    redirect_uris[0] // ← "http://localhost"
+    redirect_uris[0]
   );
 
   try {
@@ -30,7 +32,10 @@ async function authorize() {
   } catch {
     const authUrl = oAuth2Client.generateAuthUrl({
       access_type: "offline",
-      scope: ["https://www.googleapis.com/auth/spreadsheets"],
+      scope: [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive.file" // Scope para Drive
+      ],
     });
 
     console.log("📢 Abriendo navegador para autenticación...");
@@ -55,6 +60,8 @@ async function authorize() {
 
   return oAuth2Client;
 }
+
+
 
 // --- LOGS ---
 export async function registrarLog({
@@ -137,6 +144,7 @@ export async function guardarReclamoEnSheet({
   reclamo,
   tipo = "",
   estado = "",
+  evidencia = "" // 🔹 nuevo parámetro para la URL en Drive
 }) {
   try {
     const auth = await authorize();
@@ -145,7 +153,8 @@ export async function guardarReclamoEnSheet({
     const numeroLimpio = numero.replace(/[^0-9]/g, "");
     const linkWhatsapp = `https://wa.me/${numeroLimpio}`;
 
-    const fila = [fecha, cliente, numero, reclamo, tipo, estado, linkWhatsapp];
+    // 🔹 añadimos evidencia como última columna
+    const fila = [fecha, cliente, numero, reclamo, tipo, estado, linkWhatsapp, evidencia];
 
     await sheets.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
@@ -159,3 +168,4 @@ export async function guardarReclamoEnSheet({
     console.error("❌ Error guardando datos del reclamo:", error.response?.data || error.message);
   }
 }
+

@@ -1,3 +1,4 @@
+// src/services/handlers/handleTextMessage.js
 import { greetings, closingExpressions } from '../constants.js';
 import { getEstado, setEstado, resetEstado, updateEstado } from '../../utils/stateManager.js';
 import detectarIntencionPipeline from '../../utils/intentionService.js';
@@ -19,6 +20,9 @@ import {
 import whatsappService from '../whatsappService.js';
 import { buscarPedido } from '../shopifyService.js';
 
+// 👇 Importamos SOLO la versión inteligente de keywords con Fuse.js
+import { buscarFlujoPorKeywords } from '../../utils/flujoMatcher.js';
+
 export default async function handleTextMessage(text, userId, senderInfo) {
   const incomingMessage = String(text).toLowerCase().trim();
 
@@ -36,7 +40,7 @@ export default async function handleTextMessage(text, userId, senderInfo) {
     return;
   }
 
-  // 3. Intentos rápidos (ej: flujo por texto)
+  // 3. Intentos rápidos (flujo directo por texto)
   const flujoDetectado = (await import('../../../data/detectarIntencionDesdeTexto.js')).default(incomingMessage);
   if (flujoDetectado) {
     await ejecutarFlujoConversacional(userId, flujoDetectado);
@@ -68,7 +72,7 @@ export default async function handleTextMessage(text, userId, senderInfo) {
           );
           await setEstado(userId, 'inicio', 'menu_principal', { mostroMenu: false });
         } else {
-          await whatsappService.sendMessage(userId, '❌ No encontré ningún pedido con ese número. Verifica si escribiste bien tu número de orden o guía.');
+          await whatsappService.sendMessage(userId, '❌ No encontré ningún pedido con ese número. Verifica si escribiste bien tu número de orden, guía o correo electronico.');
         }
       }
       break;
@@ -87,37 +91,23 @@ export default async function handleTextMessage(text, userId, senderInfo) {
       await resolverFlujo(userId, incomingMessage, estado);
       break;
 
-    // case 'reporte_pedido': {
-    //   if (estado.subestado === 'esperando_foto_equivocado') {
-    //     await whatsappService.sendMessage(userId, "✅ Gracias por la foto. Revisaremos el caso de *producto equivocado* y nos pondremos en contacto pronto.");
-    //     await resetEstado(userId);
-    //     return;
-    //   }
-    //   if (estado.subestado === 'esperando_foto_danado') {
-    //     await whatsappService.sendMessage(userId, "✅ Gracias por la foto. Hemos recibido tu reclamo de *producto dañado*. Nuestro equipo lo revisará.");
-    //     await resetEstado(userId);
-    //     return;
-    //   }
-    //   if (estado.subestado === 'esperando_texto_incompleto') {
-    //     await whatsappService.sendMessage(userId, `✅ Hemos recibido tu mensaje sobre el pedido incompleto: "${incomingMessage}". Te daremos solución lo antes posible.`);
-    //     await resetEstado(userId);
-    //     return;
-    //   }
-    //   break;
-    // }
-
     default: {
-      // detectar intención con pipeline
-      const intencion = await detectarIntencionPipeline(incomingMessage, userId, estado.historial || []);
-      const flujo = encontrarFlujoPorIntencion(intencion);
+      // 🔹 Nuevo router híbrido
 
-      if (flujo?.intencion === 'estado_pedido') {
-        await setEstado(userId, 'seguimiento', 'esperando_guia', { mostroMenu: false });
-        await whatsappService.sendMessage(userId, 'Por favor, envíame tu número de orden (#3030) o tu número de guía 📦');
+      // 1) Detectar intención
+      const intencion = await detectarIntencionPipeline(incomingMessage, userId, estado.historial || []);
+      let flujo = encontrarFlujoPorIntencion(intencion);
+
+      // 2) Si no hay flujo exacto, buscar por keywords (Fuse.js)
+      if (!flujo) flujo = buscarFlujoPorKeywords(incomingMessage);
+
+      // 3) Si encontró flujo → ejecutarlo y salir
+      if (flujo) {
+        await ejecutarFlujoConversacional(userId, flujo);
         return;
       }
 
-      // ✅ Menú principal solo si no se mostró ya
+      // 4) Menú principal si corresponde
       if (estado.estado === 'inicio' && estado.subestado === 'menu_principal') {
         if (!estado.mostroMenu) {
           await sendWelcomeMenu(userId);
@@ -126,15 +116,24 @@ export default async function handleTextMessage(text, userId, senderInfo) {
         return;
       }
 
-      if (flujo) {
-        await ejecutarFlujoConversacional(userId, flujo);
-        return;
-      }
+      // 5) 🔹 IA (PDF + Gemini) si no hay flujo
+      const { procesarConsultaLibre } = await import('../assistantOrchestrator.js');
+      const respuestaSource = await procesarConsultaLibre(userId, incomingMessage, intencion);
+      const respuesta = respuestaSource.texto;
 
-      // fallback → saludo + menú inicial
-      await sendWelcomeMessage(userId, senderInfo);
-      await sendWelcomeMenu(userId);
-      await setEstado(userId, 'inicio', 'menu_principal', { mostroMenu: true });
+      await whatsappService.sendMessage(userId, respuesta);
+
+      // guardar historial
+      const estadoActual = await getEstado(userId);
+      const hist = estadoActual?.historial || [];
+      hist.push({ tipo: 'bot', texto: respuesta, timestamp: new Date().toISOString() });
+      await (await import('../stateStore.js')).default.set(userId, {
+        ...estadoActual,
+        historial: hist,
+        ultimaActualizacion: Date.now()
+      });
+
+      return;
     }
   }
 }

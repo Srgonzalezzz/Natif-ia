@@ -1,27 +1,29 @@
+// src/app.js
 import express from "express";
-import config from "./config/env.js";
-import webhookRoutes from "./routes/webhookRoutes.js";
-import { buscarEnPDFs, indexPDFs } from "./services/pdfIndexer.js";
+import dotenv from "dotenv";
+import shopifyWebhook from "./routes/shopifyWebhook.js";
+import webhookRoutes from "./routes/webhookRoutes.js"; // WhatsApp + endpoints extra (PDFs opcional)
+
+dotenv.config();
 
 const app = express();
-app.use(express.json());
 
+// ⚠️ RAW SOLO para Shopify (HMAC necesita el cuerpo EXACTO)
+app.use("/webhooks/shopify", express.raw({ type: "application/json" }));
+
+// ✅ JSON para TODO lo demás (después del raw de Shopify)
+app.use(express.json({ limit: "1mb" }));
+
+// Monta rutas
+app.use("/webhooks/shopify", shopifyWebhook);
 app.use("/", webhookRoutes);
 
-// Endpoint para forzar reindexado
-app.get("/reindex", async (req, res) => {
-  await indexPDFs(true);
-  res.send("Índice de PDFs actualizado ✅");
+// Healthcheck
+app.get("/", (_req, res) => {
+  res.status(200).send("<pre>Servidor NATIF activo 🚀</pre>");
 });
 
-// Endpoint para buscar en PDFs
-app.get("/buscar", async (req, res) => {
-  const q = req.query.q;
-  if (!q) return res.status(400).json({ error: "Falta parámetro ?q=" });
-  const results = await buscarEnPDFs(q, { limit: 3 });
-  res.json(results);
-});
-
-app.listen(config.PORT, () => {
-  console.log(`Server is listening on port: ${config.PORT}`);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is listening on port: ${PORT}`);
 });
