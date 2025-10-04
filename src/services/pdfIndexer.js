@@ -1,4 +1,8 @@
 // src/services/pdfIndexer.js
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const pdfParse = require('pdf-parse');
+
 import fs from 'fs/promises';
 import path from 'path';
 import pkg from 'pdf-parse';   // 👈 importante
