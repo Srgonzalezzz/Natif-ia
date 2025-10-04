@@ -1,15 +1,3 @@
-// ⚠️ Solución al error DOMMatrix no definido en pdf-parse
-if (typeof global.DOMMatrix === 'undefined') {
-  global.DOMMatrix = class DOMMatrix {
-    constructor() { }
-    multiply() { return this; }
-    invertSelf() { return this; }
-    translate() { return this; }
-    scale() { return this; }
-    rotate() { return this; }
-  };
-}
-
 import express from "express";
 import dotenv from "dotenv";
 import shopifyWebhook from "./routes/shopifyWebhook.js";

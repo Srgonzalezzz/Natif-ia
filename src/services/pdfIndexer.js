@@ -1,5 +1,15 @@
 // src/services/pdfIndexer.js
-
+// ⚠️ Definir DOMMatrix ANTES de cargar pdf-parse
+if (typeof global.DOMMatrix === 'undefined') {
+  global.DOMMatrix = class DOMMatrix {
+    constructor() { }
+    multiply() { return this; }
+    invertSelf() { return this; }
+    translate() { return this; }
+    scale() { return this; }
+    rotate() { return this; }
+  };
+}
 // 👇 Cargamos pdf-parse correctamente en ESM (porque es CommonJS)
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
