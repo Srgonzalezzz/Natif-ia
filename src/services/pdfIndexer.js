@@ -1,8 +1,10 @@
 // src/services/pdfIndexer.js
 import fs from 'fs/promises';
 import path from 'path';
-import pdfParse from 'pdf-parse';
+import pkg from 'pdf-parse';   // 👈 importante
 import Fuse from 'fuse.js';
+
+const pdfParse = pkg;          // 👈 asignamos a una constante usable
 
 const DATA_DIR = path.resolve('./data');
 let fuse = null;
@@ -22,7 +24,7 @@ function chunkText(text, chunkSize = 900, overlap = 250) {
 
 async function extractText(filePath) {
   const buffer = await fs.readFile(filePath);
-  const { text } = await pdfParse(buffer);
+  const { text } = await pdfParse(buffer);  // 👈 ya funciona
   return text || '';
 }
 
@@ -30,7 +32,8 @@ export async function indexPDFs(force = false) {
   try {
     const files = await fs.readdir(DATA_DIR);
     const pdfFiles = files.filter(f => f.toLowerCase().endsWith('.pdf'));
-    if (!force && fuse && (Date.now() - lastIndexedAt < 1000 * 60)) return; // throttle
+    // throttle
+    if (!force && fuse && (Date.now() - lastIndexedAt < 1000 * 60)) return;
 
     fragments = [];
     for (const file of pdfFiles) {
@@ -38,9 +41,11 @@ export async function indexPDFs(force = false) {
         const fullPath = path.join(DATA_DIR, file);
         const text = await extractText(fullPath);
         const chunks = chunkText(text);
-        chunks.forEach((c, i) => fragments.push({ id: `${file}-${i}`, archivo: file, contenido: c }));
+        chunks.forEach((c, i) =>
+          fragments.push({ id: `${file}-${i}`, archivo: file, contenido: c })
+        );
       } catch (err) {
-        console.error('pdfIndexer: error reading', file, err.message);
+        console.error('pdfIndexer: error leyendo', file, err.message);
       }
     }
 
