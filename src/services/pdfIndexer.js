@@ -1,20 +1,22 @@
 // src/services/pdfIndexer.js
+
+// 👇 Cargamos pdf-parse correctamente en ESM (porque es CommonJS)
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const pdfParse = require('pdf-parse');
+const pdfParse = require('pdf-parse'); // ✅ solo aquí
 
+// 👇 Imports normales
 import fs from 'fs/promises';
 import path from 'path';
-import pkg from 'pdf-parse';   // 👈 importante
 import Fuse from 'fuse.js';
 
-const pdfParse = pkg;          // 👈 asignamos a una constante usable
-
+// Directorio donde buscar los PDFs
 const DATA_DIR = path.resolve('./data');
 let fuse = null;
 let fragments = [];
 let lastIndexedAt = 0;
 
+// Divide el texto en trozos manejables
 function chunkText(text, chunkSize = 900, overlap = 250) {
   const out = [];
   let start = 0;
@@ -26,18 +28,19 @@ function chunkText(text, chunkSize = 900, overlap = 250) {
   return out.filter(Boolean);
 }
 
+// Extraer texto de un PDF
 async function extractText(filePath) {
   const buffer = await fs.readFile(filePath);
-  const { text } = await pdfParse(buffer);  // 👈 ya funciona
+  const { text } = await pdfParse(buffer);
   return text || '';
 }
 
+// Indexar todos los PDFs del directorio ./data
 export async function indexPDFs(force = false) {
   try {
     const files = await fs.readdir(DATA_DIR);
     const pdfFiles = files.filter(f => f.toLowerCase().endsWith('.pdf'));
-    // throttle
-    if (!force && fuse && (Date.now() - lastIndexedAt < 1000 * 60)) return;
+    if (!force && fuse && (Date.now() - lastIndexedAt < 1000 * 60)) return; // throttle 1 min
 
     fragments = [];
     for (const file of pdfFiles) {
@@ -67,6 +70,7 @@ export async function indexPDFs(force = false) {
   }
 }
 
+// Buscar en los PDFs ya indexados
 export async function buscarEnPDFs(query, opts = { limit: 3 }) {
   if (!fuse) await indexPDFs();
   if (!fuse) return null;
