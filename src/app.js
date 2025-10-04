@@ -1,24 +1,29 @@
 import express from "express";
-import dotenv from "dotenv";
-import shopifyWebhook from "./routes/shopifyWebhook.js";
-import webhookRoutes from "./routes/webhookRoutes.js";
 
-dotenv.config();
+const router = express.Router();
 
-const app = express();
+// ⚠️ token de verificación desde .env
+const VERIFY_TOKEN = process.env.WEBHOOK_VERIFY_TOKEN;
 
-// BODY CRUDO SOLO para webhooks de Shopify (requerido para HMAC)
-app.use("/webhooks/shopify", express.raw({ type: "application/json" }));
+// Meta envía GET para verificar
+router.get("/webhook", (req, res) => {
+  const mode = req.query["hub.mode"];
+  const token = req.query["hub.verify_token"];
+  const challenge = req.query["hub.challenge"];
 
-// JSON para TODO lo demás
-app.use((req, res, next) => {
-  if (req.path.startsWith("/webhooks/shopify")) return next();
-  return express.json({ limit: "1mb" })(req, res, next);
+  if (mode === "subscribe" && token === VERIFY_TOKEN) {
+    console.log("Webhook verificado con éxito ✅");
+    return res.status(200).send(challenge);
+  } else {
+    return res.sendStatus(403);
+  }
 });
 
-// Rutas
-app.use("/webhooks/shopify", shopifyWebhook);
-app.use("/", webhookRoutes);
+// Meta envía POST con mensajes
+router.post("/webhook", (req, res) => {
+  console.log("Evento entrante", JSON.stringify(req.body, null, 2));
+  // Aquí procesas mensajes entrantes...
+  return res.sendStatus(200);
+});
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server is listening on port: ${PORT}`));
+export default router;
